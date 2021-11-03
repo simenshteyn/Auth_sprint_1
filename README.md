@@ -7,6 +7,7 @@
 
 
 `$ vi .env`
+
 2. Run project via docker-compose:
 
 `$ docker-compose up --build`
@@ -15,6 +16,10 @@
 
 `$ docker-compose --profile=testing up --build`
 
-4. Clear up docker:
+4. Run project without tests:
+
+`$ docker-compose up --build`
+
+5.Clear up docker:
 
 `$ docker-compose down -v`
