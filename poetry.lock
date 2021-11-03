@@ -333,7 +333,7 @@ testing = ["coverage", "hypothesis (>=5.7.1)"]
 name = "redis"
 version = "3.5.3"
 description = "Python client for Redis key-value store"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -382,7 +382,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "701a9f9e4cc32ac27b3351fdc6f9452c7f7b25b0093153771f878b959b5158a4"
+content-hash = "61a89852c24c9688b08c2d877083ac4b081873b9140b22f9740e018cec1109d2"
 
 [metadata.files]
 aiohttp = [
