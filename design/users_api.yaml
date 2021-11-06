@@ -1,139 +1,261 @@
-swagger: "2.0"
+openapi: 3.0.0
 info:
-  description: "Auth service for Yandex Practicum"
-  version: "1.0.0"
-  title: "AUTH Service"
-host: "localhost:8000"
-basePath: "/api/v1"
+  description: Auth service for Yandex Practicum
+  version: 1.0.0
+  title: AUTH Service
+
 tags:
-- name: "user"
-  description: "Operations about user"
-- name: "role"
-  description: "Operations about roles"
+- name: Users
+  description: Operations about user
+- name: Roles
+  description: Operations about roles
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    CreateUser:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+
+
+    Error:
+      type: object
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string
+      required:
+        - error_code
+        - message
+
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+
+    AuthEvent:
+      type: object
+      properties:
+        uuid:
+          type: string
+          readOnly: true
+        time:
+          type: timestamp
+        fingerprint:
+          type: string
+
+  responses:
+    MinimlResponse:
+      description: OK
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ImaTeapot:
+      description: Code Execution Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalError:
+      description: Internal Server Error
+
+
+
 paths:
-  /user/register:
+  /user/signup:
     post:
+      summary: Creation of a new user
       tags:
-      - "user"
-      summary: "Register a new user"
-      description: ""
-      operationId: "registerUser"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      responses:
-        "200":
-          description: "successful operation"
-  /user/login:
-    post:
-      tags:
-      - "user"
-      summary: "Logs user into the system"
-      description: ""
-      produces:
-      - "application/json"
-      parameters:
-      - name: "username"
-        in: "query"
-        description: "The user name for login"
+        - Users
+      requestBody:
         required: true
-        type: "string"
-      - name: "password"
-        in: "query"
-        description: "The password for login in clear text"
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/CreateUser'
+      description: User creation and getting token to access api methods
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '418':
+          $ref: '#/components/responses/ImaTeapot'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /user/auth:
+    post:
+      summary: Authorization by username and password to get access and refresh tokens
+      tags:
+        - Users
+      requestBody:
         required: true
-        type: "string"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      description: User authorization, get tokens to access API methods
       responses:
-        "200":
-          description: "successful operation"
-        "400":
-          description: "Invalid username/password supplied"
-  /user/refresh:
-    post:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '418':
+          $ref: '#/components/responses/ImaTeapot'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      summary: Edit user login and/or password
       tags:
-      - "user"
-      summary: "Refresh access token"
-      description: ""
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/CreateUser'
+                - $ref: '#/components/schemas/Token'
+      description: Edit user login and/or password
       responses:
-        "200":
-          description: "successful operation"
-  /user/logout:
-    post:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '418':
+          $ref: '#/components/responses/ImaTeapot'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      summary: Get access and refresh token using refresh token
       tags:
-      - "user"
-      summary: "Logs out current logged in user session"
-      description: ""
-      produces:
-      - "application/json"
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Token'
+                - required:
+                    - refresh_token
+        description: User authorization, get access and refresh token using resfresh token
       responses:
-        default:
-          description: "successful operation"
-  /user/update:
-    post:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '418':
+          $ref: '#/components/responses/ImaTeapot'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      summary: Log out and destroy JWT Tokens
       tags:
-      - "user"
-      summary: "History of user logins into account"
-      description: ""
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Token'
+                - required:
+                    - refresh_token
+        description: Log out and destroy JWT tokens using resfresh token
       responses:
-        "200":
-          description: "successful operation"
-  /user/history:
-    post:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '418':
+          $ref: '#/components/responses/ImaTeapot'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      summary: Get user authorization history
       tags:
-      - "user"
-      summary: "History of user logins into account"
-      description: ""
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Token'
+      description: Get user authorization history
       responses:
-        "200":
-          description: "successful operation"
-securityDefinitions:
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
-definitions:
-  User:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      username:
-        type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-  ApiResponse:
-    type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
-      message:
-        type: "string"
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthEvent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '418':
+          $ref: '#/components/responses/ImaTeapot'
+        '500':
+          $ref: '#/components/responses/InternalError'
