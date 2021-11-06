@@ -159,7 +159,6 @@ components:
     InternalError:
       description: Internal Server Error
 
-
 paths:
   /user/signup:
     post:
@@ -188,7 +187,6 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
-
 
   /user/auth:
     post:
@@ -298,7 +296,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-
   /user/auth/logout:
     post:
       summary: Log out User and destroy refresh token
@@ -329,7 +326,6 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
-
 
   /role:
     get:
@@ -381,7 +377,6 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
-
 
   /role/{role_id}:
     parameters:
@@ -443,7 +438,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-
   /role/{role_id}/permissions:
     parameters:
       - in: path
@@ -498,7 +492,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-
   /role/{role_id}/permissions/{permission_id}:
     parameters:
       - in: path
@@ -534,7 +527,6 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
-
 
   /permission:
     get:
@@ -616,8 +608,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-
-
     delete:
       summary: Remove Permission by uuid.
       tags:
@@ -638,7 +628,6 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
-
 
   /user/{user_id}/roles:
     parameters:
@@ -704,7 +693,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-
   /user/{user_id}/roles/{role_id}:
     parameters:
       - in: path
@@ -741,7 +729,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-
   /user/{user_id}/permissions:
     parameters:
       - in: path
@@ -749,6 +736,7 @@ paths:
         required: true
         schema:
           type: string
+
     get:
       summary: Get Permission list of User by uuid
       tags:
@@ -774,7 +762,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-
   /user/{user_id}/permissions/{permission_id}:
     parameters:
       - in: path
@@ -787,6 +774,7 @@ paths:
         required: true
         schema:
           type: string
+
     get:
       summary: Check if given User have permission by uuid
       tags:
@@ -799,7 +787,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PermissionStatus'
-
         '401':
           $ref: '#/components/responses/Unauthorized'
         '400':
