@@ -30,7 +30,6 @@ components:
         email:
           type: string
 
-
     Error:
       type: object
       properties:
@@ -90,7 +89,6 @@ components:
       description: Internal Server Error
 
 
-
 paths:
   /user/signup:
     post:
@@ -120,6 +118,8 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
+
+
   /user/auth:
     post:
       summary: Authorization by username and password to get access and refresh tokens
@@ -147,6 +147,7 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
+
     patch:
       summary: Edit user login and/or password
       tags:
@@ -175,6 +176,7 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
+
     put:
       summary: Get access and refresh token using refresh token
       tags:
@@ -204,6 +206,7 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
+
     delete:
       summary: Log out and destroy JWT Tokens
       tags:
@@ -233,6 +236,7 @@ paths:
           $ref: '#/components/responses/ImaTeapot'
         '500':
           $ref: '#/components/responses/InternalError'
+
     get:
       summary: Get user authorization history
       tags:
