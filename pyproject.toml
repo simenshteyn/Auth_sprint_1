@@ -8,8 +8,10 @@ authors = ["Sergey Simenshteyn <simenshteyn@gmail.com>"]
 python = "^3.9"
 psycopg2-binary = "^2.9.1"
 pydantic = "^1.8.2"
-aioredis = "^2.0.0"
 Flask = "^2.0.2"
+redis = "^3.5.3"
+dependency-injector = "^4.37.0"
+SQLAlchemy = "^1.4.26"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -17,8 +19,8 @@ flake8 = "^4.0.1"
 asyncio = "^3.4.3"
 aiohttp = "^3.8.0"
 pytest-asyncio = "^0.16.0"
-redis = "^3.5.3"
 pytest-flask = "^1.2.0"
+aioredis = "^2.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
