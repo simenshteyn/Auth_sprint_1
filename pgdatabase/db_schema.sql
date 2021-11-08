@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS app.auth_events (
     auth_event_time         timestamp with time zone DEFAULT (now()),
     auth_event_fingerprint  text        NOT NULL,
     FOREIGN KEY (auth_event_owner_id)
-            REFERENCES app.users(user_id)
+            REFERENCES app.users (user_id)
             ON DELETE CASCADE
             ON UPDATE CASCADE
 );
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS app.tokens (
 
 CREATE TABLE IF NOT EXISTS app.roles (
     role_id                 uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-    role_name               text        NO NULL,
+    role_name               text        NOT NULL,
     UNIQUE (role_name)
 );
 
