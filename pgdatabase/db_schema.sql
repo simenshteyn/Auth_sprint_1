@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS app.tokens (
     token_value             text        NOT NULL,
     tooken_used             boolean     DEFAULT false,
     created_at              timestamp with time zone DEFAULT (now()),
-    expires_at              timestamp with time zone NOT NULL,
+    expires_at              timestamp with time zone DEFAULT (now()::DATE + 10),
      UNIQUE (token_owner_id, token_value),
     FOREIGN KEY (token_owner_id)
             REFERENCES app.users(user_id)
