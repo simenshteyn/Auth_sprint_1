@@ -30,6 +30,13 @@ def pg_conn():
     pg_conn.close()
 
 
+@pytest.fixture
+def pg_curs(pg_conn):
+    pg_curs = pg_conn.cursor()
+    yield pg_curs
+    pg_curs.close()
+
+
 @pytest.fixture(scope='session')
 async def session():
     session = aiohttp.ClientSession()
