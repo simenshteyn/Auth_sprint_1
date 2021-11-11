@@ -1,7 +1,3 @@
-import json
-
-from pydantic import BaseModel
-
 from tests.functional.utils.models import Role, HTTPResponse
 
 
