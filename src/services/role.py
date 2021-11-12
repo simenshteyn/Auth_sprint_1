@@ -1,10 +1,12 @@
-from flask import jsonify
 from flask_sqlalchemy import SQLAlchemy
+
+from db.pg import db
 
 
 class RoleService:
-    def __init__(self, storage: SQLAlchemy):
-        self.storage = storage
+
+    def __init__(self):
+        self.storage = db
 
     def get_roles_list(self):
         role_list = [
