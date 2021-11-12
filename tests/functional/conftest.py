@@ -4,6 +4,7 @@ import aiohttp
 import psycopg2
 import pytest
 from psycopg2.extras import DictCursor
+from redis import Redis
 
 from tests.functional.settings import config
 from tests.functional.utils.models import HTTPResponse
@@ -13,6 +14,11 @@ dsl = {'dbname': config.pg_dbname,
        'password': config.pg_pass,
        'host': config.pg_host,
        'port': config.pg_port}
+
+redis_details = {
+    'host': config.redis_host,
+    'port': config.redis_port
+}
 
 
 @pytest.fixture(scope="session")
@@ -28,6 +34,13 @@ def pg_conn():
     pg_conn = psycopg2.connect(**dsl, cursor_factory=DictCursor)
     yield pg_conn
     pg_conn.close()
+
+
+@pytest.fixture
+def pg_curs(pg_conn):
+    pg_curs = pg_conn.cursor()
+    yield pg_curs
+    pg_curs.close()
 
 
 @pytest.fixture(scope='session')
@@ -58,3 +71,10 @@ def make_get_request(session):
     return inner
 
 
+@pytest.fixture
+def redis_conn():
+    r = Redis(redis_details['host'],
+              redis_details['port']
+              )
+    yield r
+    r.close()
