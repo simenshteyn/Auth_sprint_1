@@ -1,14 +1,21 @@
+from dataclasses import dataclass
+
+from sqlalchemy import DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 
 from db.pg import db
 
 
-class User(db.Model):
+@dataclass
+class Role(db.Model):
     __tablename__ = 'roles'
 
-    role_id = db.Column(UUID(as_uuid=True), primary_key=True, unique=True,
-                        nullable=False)
-    role_name = db.Column(db.String, unique=True, nullable=False)
+    __table_args__ = {'schema': 'app'}
 
-    def __repr__(self):
-        return f'<Role {self.role_name}>'
+    role_id: str
+    role_name: str
+
+    role_id = db.Column(UUID, primary_key=True,
+                        server_default=DefaultClause(text("gen_random_uuid()"))
+                        )
+    role_name = db.Column(db.String, unique=True, nullable=False)
