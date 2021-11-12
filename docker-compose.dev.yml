@@ -16,6 +16,8 @@ services:
       dockerfile: ./pgdatabase/Dockerfile
     expose:
       - ${POSTGRES_PORT}
+    ports:
+      - 54320:5432
     healthcheck:
       test: ["CMD-SHELL", "su postgres", "&&", "pg_isready"]
       interval: 5s
@@ -64,7 +66,10 @@ services:
       context: .
       dockerfile: tests/Dockerfile
     command: >
-      sh -c "pytest /app/tests -s -v && flake8 ."
+      sh -c "pytest /app/tests -s -v"
+    volumes:
+    - ./tests:/app/tests
+    - ./src:/app/src
     depends_on:
       - auth_app
     profiles:

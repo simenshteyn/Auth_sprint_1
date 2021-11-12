@@ -5,8 +5,19 @@ from sqlalchemy.sql import func
 from db import db
 
 
+# CREATE TABLE IF NOT EXISTS app.users (
+#     user_id                 uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+#     user_login              text        NOT NULL UNIQUE,
+#     user_password           text        NOT NULL,
+#     user_email              text        NOT NULL UNIQUE,
+#     created_at              timestamp with time zone DEFAULT (now()),
+#     updated_at              timestamp with time zone DEFAULT (now())
+# );
+
 class User(db.Model):
+    query: db.Query  # added for type hinting
     __tablename__ = 'users'
+    __table_args__ = {"schema": "app"}
 
     user_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     user_login = db.Column(db.String, unique=True, nullable=False)
