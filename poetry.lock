@@ -180,6 +180,18 @@ Werkzeug = ">=0.14"
 asymmetric_crypto = ["cryptography (>=35.0.0)"]
 
 [[package]]
+name = "flask-pydantic"
+version = "0.9.0"
+description = "Flask extension for integration with Pydantic library"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+Flask = "*"
+pydantic = ">=1.7"
+
+[[package]]
 name = "flask-sqlalchemy"
 version = "2.5.1"
 description = "Adds SQLAlchemy support to your Flask application."
@@ -508,7 +520,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "e4de0d779994aa3bedabf976a06e5db6090bd95ef18daf99f05350b9b1e2501c"
+content-hash = "d014bd232b9dc87488c17cd7ad64360ce8f96ff207ef61d33d89c2d10260b7bb"
 
 [metadata.files]
 aiohttp = [
@@ -672,6 +684,10 @@ flask = [
 flask-jwt-extended = [
     {file = "Flask-JWT-Extended-4.3.1.tar.gz", hash = "sha256:ad6977b07c54e51c13b5981afc246868b9901a46715d9b9827898bfd916aae88"},
     {file = "Flask_JWT_Extended-4.3.1-py2.py3-none-any.whl", hash = "sha256:c82c9e505bc96f4a5186de31c05262dbcde6fa10581e9aa46df8f99ca04be2c3"},
+]
+flask-pydantic = [
+    {file = "Flask-Pydantic-0.9.0.tar.gz", hash = "sha256:fb5812f64f9605fb047960637e2c15c8eab955e43d2df01056e72f26c3cfcc64"},
+    {file = "Flask_Pydantic-0.9.0-py3-none-any.whl", hash = "sha256:cc80dfdb5177bcaeb3cb8c6f4febc4c4bd2c6cad313b80ae45578b37791f2856"},
 ]
 flask-sqlalchemy = [
     {file = "Flask-SQLAlchemy-2.5.1.tar.gz", hash = "sha256:2bda44b43e7cacb15d4e05ff3cc1f8bc97936cc464623424102bfc2c35e95912"},
