@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS app.tokens (
     token_id                uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
     token_owner_id          uuid        NOT NULL,
     token_value             text        NOT NULL,
-    tooken_used             boolean     DEFAULT false,
+    token_used              boolean     DEFAULT false,
     created_at              timestamp with time zone DEFAULT (now()),
     expires_at              timestamp with time zone DEFAULT (now()::DATE + 10),
      UNIQUE (token_owner_id, token_value),
