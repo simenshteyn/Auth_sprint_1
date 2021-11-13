@@ -1,4 +1,4 @@
-import uuid
+from sqlalchemy import DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -10,11 +10,10 @@ class User(db.Model):
     __tablename__ = 'users'
     __table_args__ = {"schema": "app"}
 
-    user_id = db.Column(UUID(as_uuid=True),
+    user_id = db.Column(UUID,
                         primary_key=True,
-                        default=uuid.uuid4,
-                        unique=True,
-                        nullable=False)
+                        server_default=DefaultClause(
+                            text("gen_random_uuid()")))
     user_login = db.Column(db.String,
                            unique=True,
                            nullable=False)

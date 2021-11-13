@@ -1,5 +1,4 @@
-import uuid
-
+from sqlalchemy import DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -11,11 +10,11 @@ class AuthEvent(db.Model):
     __tablename__ = 'auth_events'
     __table_args__ = {"schema": "app"}
 
-    auth_event_id = db.Column(UUID(as_uuid=True),
-                              primary_key=True,
-                              default=uuid.uuid4,
-                              unique=True,
-                              nullable=False)
+    auth_event_id: str = db.Column(
+        UUID,
+        primary_key=True,
+        server_default=DefaultClause(text("gen_random_uuid()"))
+    )
     auth_event_owner_id = db.Column(UUID(as_uuid=True),
                                     db.ForeignKey("app.users.user_id"),
                                     nullable=False)

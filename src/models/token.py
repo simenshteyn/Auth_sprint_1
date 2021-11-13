@@ -1,6 +1,4 @@
-import uuid
-
-from sqlalchemy import FetchedValue
+from sqlalchemy import FetchedValue, DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -12,11 +10,11 @@ class Token(db.Model):
     __tablename__ = 'tokens'
     __table_args__ = {"schema": "app"}
 
-    token_id = db.Column(UUID(as_uuid=True),
+    token_id = db.Column(UUID,
                          primary_key=True,
-                         default=uuid.uuid4,
-                         unique=True,
-                         nullable=False)
+                         server_default=DefaultClause(
+                             text("gen_random_uuid()")))
+
     token_owner_id = db.Column(UUID(as_uuid=True),
                                db.ForeignKey("app.users.user_id"),
                                nullable=False)
