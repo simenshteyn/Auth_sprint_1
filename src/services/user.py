@@ -8,7 +8,7 @@ from models.user import User
 from werkzeug.security import generate_password_hash
 from flask_jwt_extended import create_access_token
 
-from utils import ServiceException
+from core.utils import ServiceException
 from db.redis_client import redis
 
 

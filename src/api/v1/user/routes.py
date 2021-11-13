@@ -9,7 +9,7 @@ from core.containers import Container
 from flask import request
 from pydantic import BaseModel, constr, EmailStr, ValidationError
 
-from utils import make_service_exception
+from core.utils import make_service_exception
 
 user = Blueprint('user', __name__, url_prefix='/user')
 
