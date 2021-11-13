@@ -1,5 +1,7 @@
 #### AUTH Service
 
+Ссылка на репозиторий: [https://github.com/simenshteyn/Auth_sprint_1](https://github.com/simenshteyn/Auth_sprint_1)
+
 OpenAPI design: `/design/authservice_openapi.yaml`
 
 **Deployment instructions:**
