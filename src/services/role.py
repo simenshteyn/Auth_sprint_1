@@ -49,4 +49,3 @@ class RoleService:
         db.session.delete(existing_role)
         db.session.commit()
         return existing_role
-
