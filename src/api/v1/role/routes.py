@@ -19,7 +19,9 @@ class RoleCreationRequest(BaseModel):
 @inject
 def get_roles(role_service: RoleService = Provide[Container.role_service]):
     role_list = role_service.get_roles_list()
-    return jsonify(role_list)
+    result = [{'uuid': role.role_id,
+               'role_name': role.role_name} for role in role_list]
+    return jsonify(result)
 
 
 @role.route('/', methods=['POST'])
