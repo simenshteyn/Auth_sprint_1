@@ -12,11 +12,10 @@ class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         packages=[
             "api.v1.routes",
-            "api.v1.user.routes"
+            "api.v1.user.routes",
+            "api.v1.role.routes"
         ],
     )
 
-    user_service = providers.Factory(
-        UserService,
-    )
+    user_service = providers.Factory(UserService)
     role_service = providers.Factory(RoleService)
