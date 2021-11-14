@@ -13,7 +13,7 @@ class Role(db.Model):
     __table_args__ = {'schema': 'app'}
 
     role_id: str = db.Column(
-        UUID,
+        UUID(as_uuid=True),
         primary_key=True,
         server_default=DefaultClause(text("gen_random_uuid()"))
     )

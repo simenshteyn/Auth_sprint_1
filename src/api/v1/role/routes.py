@@ -36,11 +36,38 @@ def create_role(role_service: RoleService = Provide[Container.role_service]):
         )
 
     try:
-        uuid, role_name = role_service.create_role(create_request.role_name)
+        new_role = role_service.create_role(create_request.role_name)
     except Exception as err:
         return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
 
     return make_response(
-        jsonify(uuid=uuid, role_name=role_name),
+        jsonify(uuid=new_role.role_id, role_name=new_role.role_name),
+        HTTPStatus.OK
+    )
+
+
+@role.route('/<uuid:role_uuid>', methods=['PATCH'])
+@inject
+def edit_role(role_uuid: str,
+              role_service: RoleService = Provide[Container.role_service]):
+    request_json = request.json
+    try:
+        edit_request = RoleCreationRequest(**request_json)
+    except ValidationError as err:
+        service_exception = make_service_exception(err)
+        return make_response(
+            jsonify(service_exception),
+            HTTPStatus.BAD_REQUEST
+        )
+    try:
+        edited_role = role_service.edit_role(
+            role_id=role_uuid,
+            role_name=edit_request.role_name
+        )
+    except Exception as err:
+        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+
+    return make_response(
+        jsonify(uuid=edited_role.role_id, role_name=edited_role.role_name),
         HTTPStatus.OK
     )
