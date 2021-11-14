@@ -130,3 +130,5 @@ dmypy.json
 
 # custom
 .idea/
+docker-compose.dev.yml
+test.http
