@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from dependency_injector.wiring import inject, Provide
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, make_response, request, jsonify
 from pydantic import BaseModel, ValidationError
 
 from core.containers import Container
@@ -69,5 +69,19 @@ def edit_role(role_uuid: str,
 
     return make_response(
         jsonify(uuid=edited_role.role_id, role_name=edited_role.role_name),
+        HTTPStatus.OK
+    )
+
+
+@role.route('/<uuid:role_uuid>', methods=['DELETE'])
+@inject
+def delete_role(role_uuid: str,
+                role_service: RoleService = Provide[Container.role_service]):
+    try:
+        deleted_role = role_service.delete_role(role_id=role_uuid)
+    except Exception as err:
+        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    return make_response(
+        jsonify(uuid=deleted_role.role_id, role_name=deleted_role.role_name),
         HTTPStatus.OK
     )

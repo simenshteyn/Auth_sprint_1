@@ -36,3 +36,17 @@ class RoleService:
         existing_role.role_name = role_name
         db.session.commit()
         return existing_role
+
+    def delete_role(self, role_id: str) -> Role:
+        existing_role: Role = Role.query.filter(
+            Role.role_id == role_id).first()
+
+        if not existing_role:
+            error_code = 'ROLE_NOT_FOUND'
+            message = 'Role with that UUID not found'
+            raise ServiceException(error_code=error_code, message=message)
+
+        db.session.delete(existing_role)
+        db.session.commit()
+        return existing_role
+
