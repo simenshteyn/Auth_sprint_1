@@ -5,7 +5,7 @@ from models.auth_event import AuthEvent
 from models.token import Token
 from models.user import User
 
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
 
 from core.utils import ServiceException
@@ -62,6 +62,30 @@ class UserService:
                                    access_token,
                                    refresh_token,
                                    user_info)
+
+        return access_token, refresh_token
+
+    def login(self, username: str, password: str, user_info: dict) \
+            -> tuple[str, str]:
+
+        user: User = User.query.filter(
+            User.user_login == username
+        ).first()
+
+        if not user:
+            raise ServiceException(error_code='USER_NOT_FOUND',
+                                   message='Unknown username')
+
+        if not check_password_hash(user.user_password, password):
+            raise ServiceException(error_code='WRONG_PASSWORD',
+                                   message='The password is incorrect')
+
+        access_token, refresh_token = generate_tokens(user)
+        self.commit_authentication(user=user,
+                                   event_type='login',
+                                   access_token=access_token,
+                                   refresh_token=refresh_token,
+                                   user_info=user_info)
 
         return access_token, refresh_token
 

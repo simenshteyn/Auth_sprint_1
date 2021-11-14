@@ -18,6 +18,7 @@ class AuthEvent(db.Model):
     auth_event_owner_id = db.Column(UUID(as_uuid=True),
                                     db.ForeignKey("app.users.user_id"),
                                     nullable=False)
+    auth_event_type = db.Column(db.String, nullable=False)
     auth_event_time = db.Column(db.DateTime(timezone=True),
                                 server_default=func.now())
     auth_event_fingerprint = db.Column(db.String,
