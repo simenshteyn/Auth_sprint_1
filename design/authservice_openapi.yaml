@@ -244,19 +244,11 @@ paths:
           $ref: '#/components/responses/InternalError'
 
     put:
-      summary: Get new access and refresh token with refresh token
+      summary: Get new access and refresh token with refresh token sent with Authorization header
       tags:
         - Authorization
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: '#/components/schemas/Token'
-                - required:
-                    - refresh_token
-      description: User authorization, returns access and refresh token using resfresh token.
+#      requestBody: EMPTY HERE
+      description: User authorization, returns access and refresh token using resfresh token. Request Body is not used.
       responses:
         '201':
           description: OK

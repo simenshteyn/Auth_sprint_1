@@ -30,10 +30,14 @@ def get_base_url(endpoint):
     )
 
 
-def json_api_request(http_method, endpoint, json_data) -> Response:
+def json_api_request(http_method: str,
+                     endpoint: str,
+                     json_data: dict,
+                     headers: dict = None) -> Response:
     response = requests.request(http_method,
                                 get_base_url(endpoint),
-                                json=json_data)
+                                json=json_data,
+                                headers=headers)
     try:
         response.json()
         return response
@@ -199,6 +203,39 @@ class TestUser:
         assert response.status_code == 400, \
             "No error when using wrong password"
         assert response.json()['error_code'] == 'USER_NOT_FOUND'
+
+        # TODO: use teardown of figure out if its possible to use t
+        #  ransactions
+        query = "delete from app.users where user_id=%s"
+        pg_curs.execute(query, (user['user_id'],))
+        pg_conn.commit()
+
+    def test_token_refresh(self, pg_conn: connection,
+                           pg_curs: cursor,
+                           redis_conn: Redis):
+
+        username = password = "".join(
+            random.choices(string.ascii_lowercase, k=10))
+        email = username + "@yandex.com"
+
+        valid_data = {
+            "username": username, "password": password, "email": email
+        }
+
+        response, user = create_user(valid_data, pg_curs)
+
+        response_json = response.json()
+        refresh_token = response_json['refresh_token']
+        headers = {
+            'Authorization': 'Bearer ' + refresh_token
+        }
+        response = json_api_request('PUT', 'user/auth', {}, headers)
+        response_json = response.json()
+        assert "access_token" in response_json, "No access_token in response"
+        assert "refresh_token" in response_json, "No refresh_token in response"
+
+        # TODO: make a request to endpoint requiring auth
+        #  and make sure it works (when we'll have such an endpoint)
 
         # TODO: use teardown of figure out if its possible to use t
         #  ransactions

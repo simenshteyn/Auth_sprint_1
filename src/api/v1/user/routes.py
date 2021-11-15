@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from flask import Blueprint, jsonify, make_response
 from dependency_injector.wiring import inject, Provide
+from flask_jwt_extended import jwt_required, get_jwt
 
 from services.user import UserService
 from core.containers import Container
@@ -23,6 +24,11 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     username: constr(min_length=1, strip_whitespace=True, to_lower=True)
     password: constr(min_length=1, strip_whitespace=True)
+
+
+# class RefreshRequest(BaseModel):
+#     access_token: constr(min_length=1)
+#     refresh_token: constr(min_length=1)
 
 
 @user.route('/signup', methods=["POST"])
@@ -82,3 +88,27 @@ def login(user_service: UserService = Provide[Container.user_service]):
     return make_response(
         jsonify(access_token=access_token, refresh_token=refresh_token),
         HTTPStatus.OK)
+
+
+@user.route('/auth', methods=["PUT"])
+@jwt_required(refresh=True)
+@inject
+def refresh(user_service: UserService = Provide[Container.user_service]):
+    jwt = get_jwt()
+    refresh_token = request.headers['Authorization'].split().pop(-1)
+
+    if 'user_id' not in jwt:
+        return make_response(
+            jsonify(error_mode='IDENTITY_MISSING',
+                    message="User id not found in decrypted content"),
+            HTTPStatus.BAD_REQUEST)
+
+    try:
+        access_token, refresh_token = user_service.refresh(
+            user_id=jwt['user_id'],
+            refresh_token=refresh_token)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+
+    return make_response(jsonify(access_token=access_token,
+                                 refresh_token=refresh_token))
