@@ -1,6 +1,8 @@
 from core.utils import ServiceException
+from models.permission import Permission
 from models.role import Role
 from db.pg import db
+from models.role_permissions import RolePermission
 
 
 class RoleService:
@@ -40,7 +42,6 @@ class RoleService:
     def delete_role(self, role_id: str) -> Role:
         existing_role: Role = Role.query.filter(
             Role.role_id == role_id).first()
-
         if not existing_role:
             error_code = 'ROLE_NOT_FOUND'
             message = 'Role with that UUID not found'
@@ -49,3 +50,50 @@ class RoleService:
         db.session.delete(existing_role)
         db.session.commit()
         return existing_role
+
+    def get_role_permissions(self, role_id: str) -> list[Permission]:
+        existing_role: Role = Role.query.filter(
+            Role.role_id == role_id).first()
+        if not existing_role:
+            error_code = 'ROLE_NOT_FOUND'
+            message = 'Role with that UUID not found'
+            raise ServiceException(error_code=error_code, message=message)
+        role_perms = RolePermission.query.filter(
+            RolePermission.role_id == role_id).all()
+        perm_ids = [rp.permission_id for rp in role_perms]
+        perms = [Permission.query.get(perm_id) for perm_id in perm_ids]
+        return perms
+
+    def set_role_permissions(self, role_id: str,
+                             perm_id: str) -> list[Permission]:
+        existing_role_perm: RolePermission = RolePermission.query.filter(
+            RolePermission.role_id == role_id,
+            RolePermission.permission_id == perm_id).all()
+        if existing_role_perm:
+            error_code = 'ROLE_PERMISSION_EXISTS'
+            message = 'Permission for Role with that UUID already exists'
+            raise ServiceException(error_code=error_code, message=message)
+        rp = RolePermission(role_id=role_id, permission_id=perm_id)
+        db.session.add(rp)
+        db.session.commit()
+        role_perms = RolePermission.query.filter(
+            RolePermission.role_id == role_id).all()
+        perm_ids = [rp.permission_id for rp in role_perms]
+        perms = [Permission.query.get(perm_id) for perm_id in perm_ids]
+        return perms
+
+    def remove_role_permissions(self, role_id: str,
+                                perm_id: str) -> Permission:
+        existing_role_perm: RolePermission = RolePermission.query.filter(
+            RolePermission.role_id == role_id,
+            RolePermission.permission_id == perm_id).all()
+        if not existing_role_perm:
+            error_code = 'ROLE_PERMISSION_NOT_FOUND'
+            message = 'Permission for Role with that UUID not found'
+            raise ServiceException(error_code=error_code, message=message)
+        perm: Permission = Permission.query.get(perm_id)
+        rp = RolePermission(role_id=role_id, permission_id=perm_id)
+        db.session.delete(rp)
+        db.session.commit()
+        return Permission(permission_id=perm_id,
+                          permission_name=perm.permission_name)

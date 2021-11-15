@@ -465,6 +465,12 @@ paths:
       summary: Assign Permission to the Role
       tags:
         - Roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignPermission'
       description: Assign Permission to the Role, returns array of role Permissions.
       responses:
         '201':
