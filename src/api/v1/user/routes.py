@@ -10,20 +10,24 @@ from core.containers import Container
 from flask import request
 from pydantic import BaseModel, constr, EmailStr, ValidationError
 
-from core.utils import make_service_exception, ServiceException
+from core.utils import make_service_exception, ServiceException, eprint
 
 user = Blueprint('user', __name__, url_prefix='/user')
-
-
-class SignupRequest(BaseModel):
-    username: constr(min_length=1, strip_whitespace=True, to_lower=True)
-    password: constr(min_length=1, strip_whitespace=True)
-    email: EmailStr
 
 
 class LoginRequest(BaseModel):
     username: constr(min_length=1, strip_whitespace=True, to_lower=True)
     password: constr(min_length=1, strip_whitespace=True)
+
+
+class SignupRequest(LoginRequest):
+    username: constr(min_length=1, strip_whitespace=True, to_lower=True)
+    password: constr(min_length=1, strip_whitespace=True)
+    email: EmailStr
+
+
+class ModifyRequest(LoginRequest):
+    pass
 
 
 @user.route('/signup', methods=["POST"])
@@ -102,6 +106,35 @@ def refresh(user_service: UserService = Provide[Container.user_service]):
         access_token, refresh_token = user_service.refresh(
             user_id=jwt['user_id'],
             refresh_token=refresh_token)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+
+    return make_response(jsonify(access_token=access_token,
+                                 refresh_token=refresh_token))
+
+
+@user.route('/auth/logout', methods=["POST"])
+@jwt_required()
+@inject
+def logout(user_service: UserService = Provide[Container.user_service]):
+    access_token = request.headers['Authorization'].split().pop(-1)
+    eprint(access_token)
+    request_json = request.json
+    refresh_token = request_json['refresh_token']
+
+    jwt = get_jwt()
+    if 'user_id' not in jwt:
+        return make_response(
+            jsonify(error_mode='IDENTITY_MISSING',
+                    message="User id not found in decrypted content"),
+            HTTPStatus.BAD_REQUEST)
+
+    try:
+        access_token, refresh_token = user_service.logout(
+            user_id=jwt['user_id'],
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
     except ServiceException as err:
         return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
 

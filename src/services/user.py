@@ -24,6 +24,13 @@ def generate_tokens(user: User):
     return access_token, refresh_token
 
 
+def authenticate(access_token) -> None:
+    """Check that access token is fresh"""
+    if not redis.get(access_token) == b"":
+        raise ServiceException(error_code='ACCESS_TOKEN_EXPIRED',
+                               message="Access token has expired")
+
+
 class UserService:
     def create_user(self,
                     username: str,
@@ -117,6 +124,30 @@ class UserService:
 
         return access_token, refresh_token
 
+    def logout(self, user_id: str, access_token: str, refresh_token: str):
+        user: User = User.query.get(user_id)
+
+        authenticate(access_token)
+
+        if not user:
+            raise ServiceException(error_code='USER_NOT_FOUND',
+                                   message='Unknown username')
+
+        current_refresh_token = Token.query.filter(
+            Token.token_value == refresh_token).first()
+        if not current_refresh_token:
+            raise ServiceException(error_code='INVALID_REFRESH_TOKEN',
+                                   message='This refresh token is invalid')
+        # Delete the access token
+        db.session.delete(current_refresh_token)
+        db.session.commit()
+
+        # Delete the refresh token
+        redis.delete(access_token)
+
+        return access_token, refresh_token
+
+    # TODO: see if this can be reused on login or disassemble it
     @staticmethod
     def commit_authentication(user: User,
                               event_type: str,
