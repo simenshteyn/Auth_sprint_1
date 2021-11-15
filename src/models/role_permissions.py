@@ -17,9 +17,13 @@ class RolePermission(db.Model):
         primary_key=True,
         server_default=DefaultClause(text("gen_random_uuid()"))
     )
-    role_id: str = db.Column(UUID(as_uuid=True),
-                             db.ForeignKey('app.roles.role_id'),
-                             nullable=False)
-    permission_id: str = db.Column(UUID(as_uuid=True),
-                                   db.ForeignKey('app.permissions.permission_id'),
-                                   nullable=False)
+    role_id: str = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey('app.roles.role_id'),
+        nullable=False
+    )
+    permission_id: str = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey('app.permissions.permission_id'),
+        nullable=False
+    )

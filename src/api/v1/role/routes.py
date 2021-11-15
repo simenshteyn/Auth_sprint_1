@@ -120,14 +120,16 @@ def set_role_permissions(
             HTTPStatus.BAD_REQUEST
         )
     try:
-        new_perms: list[Permission] = role_service.set_role_permissions(
+        new_perm: Permission = role_service.set_role_permissions(
             role_id=role_uuid,
             perm_id=set_request.permission_uuid)
     except Exception as err:
         return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
-    result = [{'uuid': perm.permission_id,
-               'permission_name': perm.permission_name} for perm in new_perms]
-    return jsonify(result)
+    return make_response(
+        jsonify(uuid=new_perm.permission_id,
+                permission_name=new_perm.permission_name),
+        HTTPStatus.OK
+    )
 
 
 @role.route('/<uuid:role_uuid>/permissions/<uuid:perm_uuid>',
@@ -138,8 +140,10 @@ def remove_role_permissions(
         perm_uuid: str,
         role_service: RoleService = Provide[Container.role_service]):
     try:
-        deleted_perm = role_service.remove_role_permissions(role_id=role_uuid,
-                                                            perm_id=perm_uuid)
+        deleted_perm: Permission = role_service.remove_role_permissions(
+            role_id=role_uuid,
+            perm_id=perm_uuid
+        )
     except Exception as err:
         return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
     return make_response(
