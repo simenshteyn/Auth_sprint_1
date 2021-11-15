@@ -6,7 +6,7 @@ from models.token import Token
 from models.user import User
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token
 
 from core.utils import ServiceException
 from db.redis_client import redis
@@ -18,7 +18,7 @@ def generate_tokens(user: User):
     access_token = create_access_token(
         identity=user.user_id, additional_claims=user_data
     )
-    refresh_token = create_access_token(
+    refresh_token = create_refresh_token(
         identity=user.user_id, additional_claims=user_data
     )
     return access_token, refresh_token
@@ -89,13 +89,40 @@ class UserService:
 
         return access_token, refresh_token
 
-    # TODO: see if this can be reused on login or disassemble it
+    def refresh(self, user_id: str, refresh_token: str) -> tuple[str, str]:
+        user: User = User.query.get(user_id)
+
+        if not user:
+            raise ServiceException(error_code='USER_NOT_FOUND',
+                                   message='Unknown username')
+
+        # Find refresh cookie to make sure its
+        # the *last* emitted one.
+        # The Refresh request will disqualify any previously emitted (stolen)
+        # refresh cookies
+        current_refresh_token = Token.query.filter(
+            Token.token_value == refresh_token).first()
+        if not current_refresh_token:
+            raise ServiceException(error_code='INVALID_REFRESH_TOKEN',
+                                   message='This refresh token is invalid')
+
+        access_token, refresh_token = generate_tokens(user)
+        db.session.delete(current_refresh_token)
+        db.session.commit()
+
+        self.commit_authentication(user=user,
+                                   event_type='refresh',
+                                   access_token=access_token,
+                                   refresh_token=refresh_token)
+
+        return access_token, refresh_token
+
     @staticmethod
     def commit_authentication(user: User,
                               event_type: str,
                               access_token: str,
                               refresh_token: str,
-                              user_info: dict):
+                              user_info: dict = None):
         """ Finalize successful authentication saving the details."""
         token = Token(token_owner_id=user.user_id, token_value=refresh_token)
         db.session.add(token)
