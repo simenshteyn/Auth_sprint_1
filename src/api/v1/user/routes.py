@@ -26,11 +26,6 @@ class LoginRequest(BaseModel):
     password: constr(min_length=1, strip_whitespace=True)
 
 
-# class RefreshRequest(BaseModel):
-#     access_token: constr(min_length=1)
-#     refresh_token: constr(min_length=1)
-
-
 @user.route('/signup', methods=["POST"])
 @inject
 def signup(user_service: UserService = Provide[Container.user_service]):
