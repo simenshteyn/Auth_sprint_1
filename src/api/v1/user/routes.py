@@ -9,7 +9,7 @@ from core.containers import Container
 from flask import request
 from pydantic import BaseModel, constr, EmailStr, ValidationError
 
-from core.utils import make_service_exception
+from core.utils import make_service_exception, ServiceException
 
 user = Blueprint('user', __name__, url_prefix='/user')
 
@@ -18,6 +18,11 @@ class SignupRequest(BaseModel):
     username: constr(min_length=1, strip_whitespace=True, to_lower=True)
     password: constr(min_length=1, strip_whitespace=True)
     email: EmailStr
+
+
+class LoginRequest(BaseModel):
+    username: constr(min_length=1, strip_whitespace=True, to_lower=True)
+    password: constr(min_length=1, strip_whitespace=True)
 
 
 @user.route('/signup', methods=["POST"])
@@ -41,8 +46,38 @@ def signup(user_service: UserService = Provide[Container.user_service]):
             signup_request.password,
             signup_request.email,
             user_info)
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+
+    return make_response(
+        jsonify(access_token=access_token, refresh_token=refresh_token),
+        HTTPStatus.OK)
+
+
+@user.route('/auth', methods=["POST"])
+@inject
+def login(user_service: UserService = Provide[Container.user_service]):
+    """ Log user in using username and password.
+        Return a newly generated pair of tokens.
+     """
+    request_json = request.json
+    try:
+        login_request = LoginRequest(**request_json)
+    except ValidationError as err:
+        service_exception = make_service_exception(err)
+        return make_response(
+            jsonify(service_exception),
+            HTTPStatus.BAD_REQUEST)
+
+    user_info = {'user-agent': request.headers.get('User-Agent')}
+
+    try:
+        access_token, refresh_token = user_service.login(
+            login_request.username,
+            login_request.password,
+            user_info)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
 
     return make_response(
         jsonify(access_token=access_token, refresh_token=refresh_token),
