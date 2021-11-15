@@ -14,3 +14,8 @@ class HTTPResponse:
 class Role(BaseModel):
     uuid: str
     role_name: str
+
+
+class Permission(BaseModel):
+    uuid: str
+    permission_name: str
