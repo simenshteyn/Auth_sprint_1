@@ -147,6 +147,44 @@ class UserService:
 
         return access_token, refresh_token
 
+    def modify(self, user_id, new_username: str, new_password: str):
+        """change user's username and password"""
+        user: User = User.query.get(user_id)
+
+        if not user:
+            raise ServiceException(error_code='USER_NOT_FOUND',
+                                   message='Unknown user')
+
+        if not new_username == user.user_login:
+            # make sure there is no other user with the target username
+            existing_user = User.query.filter(
+                (User.user_login == new_username)
+            ).first()
+
+            if existing_user:
+                raise ServiceException(error_code='LOGIN_EXISTS',
+                                       message='this username is taken')
+
+            user.user_login = new_username
+
+        if not new_password == user.user_password:
+            user.user_password = new_password
+
+        if db.session.is_modified(user):
+            db.session.commit()
+
+    def get_auth_history(self, user_id):
+        history: list[AuthEvent] = AuthEvent.query.filter(
+            (AuthEvent.auth_event_owner_id == user_id)
+        ).all()
+
+        result = []
+        for event in history:
+            result.append({"uuid": event.auth_event_id,
+                           "time": event.auth_event_time,
+                           "fingerprint": event.auth_event_fingerprint})
+        return result
+
     # TODO: see if this can be reused on login or disassemble it
     @staticmethod
     def commit_authentication(user: User,

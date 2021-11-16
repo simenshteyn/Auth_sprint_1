@@ -286,3 +286,69 @@ class TestUser:
             "Invalid error_code when making unauthenticated request"
 
     # TODO: combine login, refresh, logout into a single flow test
+
+    def test_modify(self, pg_conn: connection,
+                    pg_curs: cursor,
+                    redis_conn: Redis):
+        username = password = "".join(
+            random.choices(string.ascii_lowercase, k=10))
+        email = username + "@yandex.com"
+
+        valid_data = {
+            "username": username, "password": password, "email": email
+        }
+
+        response, user = create_user(valid_data, pg_curs, redis_conn)
+
+        response_json = response.json()
+
+        access_token = response_json['access_token']
+        headers = {
+            'Authorization': 'Bearer ' + access_token
+        }
+
+        del valid_data["email"]
+        modified_data = {k: valid_data[k] + "1" for k in valid_data}
+
+        response = json_api_request('PATCH',
+                                    'user/auth',
+                                    modified_data,
+                                    headers)
+        assert response.status_code == 202, \
+            "Credentials change wasn't accepted"
+
+        query = "select user_login,user_password " \
+                "from app.users where user_id=%s"
+        pg_curs.execute(query, (user['user_id'],))
+        user = dictfetchall(pg_curs).pop()
+
+        assert user["user_login"] == modified_data["username"], \
+            "username didn't change in the database"
+        assert user["user_password"] == modified_data["password"], \
+            "password didn't change in the database"
+
+    def test_history(self, pg_curs: cursor,
+                     redis_conn: Redis):
+        username = password = "".join(
+            random.choices(string.ascii_lowercase, k=10))
+        email = username + "@yandex.com"
+
+        valid_data = {
+            "username": username, "password": password, "email": email
+        }
+
+        response, user = create_user(valid_data, pg_curs, redis_conn)
+
+        response_json = response.json()
+
+        access_token = response_json['access_token']
+        headers = {
+            'Authorization': 'Bearer ' + access_token
+        }
+
+        del valid_data["email"]
+        json_api_request("post", "user/auth", valid_data)
+
+        response = json_api_request('GET', 'user/auth', {}, headers)
+
+        assert len(response.json()) > 0, "No history events found"
