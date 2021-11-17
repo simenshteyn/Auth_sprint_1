@@ -29,3 +29,9 @@ class UserTokens(BaseModel):
 class ServiceError(BaseModel):
     error_code: str
     message: str
+
+
+class PermissionCheck(BaseModel):
+    user_uuid: str
+    permission_uuid: str
+    is_permitted: bool

@@ -4,7 +4,7 @@ import pytest
 from http import HTTPStatus
 
 from tests.functional.utils.extract import extract_roles, extract_role, \
-    extract_permission, extract_permissions, extract_tokens
+    extract_permission, extract_permissions, extract_tokens, extract_perm_check
 
 
 def get_user_uuid(pg_curs, username: str, table_name: str = 'users',
@@ -162,6 +162,12 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     assert assigned_permission.uuid == perm_uuid
     assert assigned_permission.permission_name == 'testing_per'
 
+    # TODO Check if created User don't have permission by uuid till it assigned
+    response = await make_get_request(f'user/{user_uuid}/pemissions/{perm_uuid}')
+    perm_check = await extract_perm_check(response)
+    assert response.status == HTTPStatus.OK
+    assert not perm_check.is_permitted
+
     # Assign created role to created user
     response = await make_post_request(f'user/{user_uuid}/roles',
                                        json={'role_uuid': role_uuid})
@@ -176,6 +182,19 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     assert response.status == HTTPStatus.OK
     assert len(assigned_roles) == 1
     assert assigned_roles[0].role_name == 'testing_role'
+
+    # TODO Get permissions list for created user
+    response = await make_get_request(f'user/{user_uuid}/permissions')
+    user_perms = await extract_permissions(response)
+    assert response.status == HTTPStatus.OK
+    assert len(user_perms) == 1
+    assert user_perms[0].permission_name == 'testing_per'
+
+    # TODO Check if created User have permission by uuid
+    response = await make_get_request(f'user/{user_uuid}/pemissions/{perm_uuid}')
+    perm_check = await extract_perm_check(response)
+    assert response.status == HTTPStatus.OK
+    assert perm_check.is_permitted
 
     # Remove assigned role from created user
     response = await make_delete_request(f'user/{user_uuid}/roles/{role_uuid}')
