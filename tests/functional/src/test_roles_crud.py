@@ -4,7 +4,7 @@ import pytest
 from http import HTTPStatus
 
 from tests.functional.utils.extract import extract_roles, extract_role, \
-    extract_permission, extract_permissions, extract_tokens, extract_error
+    extract_permission, extract_permissions, extract_tokens
 
 
 def get_user_uuid(pg_curs, username: str, table_name: str = 'users',
