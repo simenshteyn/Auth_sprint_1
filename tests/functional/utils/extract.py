@@ -33,4 +33,3 @@ async def extract_error(response: HTTPResponse) -> ServiceError:
 async def extract_perm_check(response: HTTPResponse) -> PermissionCheck:
     perm_check = response.body
     return PermissionCheck.parse_obj(perm_check)
-
