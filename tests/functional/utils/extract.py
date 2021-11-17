@@ -1,4 +1,5 @@
-from tests.functional.utils.models import Role, Permission, HTTPResponse
+from tests.functional.utils.models import Role, Permission, HTTPResponse, \
+    UserTokens
 
 
 async def extract_roles(response: HTTPResponse) -> list[Role]:
@@ -17,3 +18,8 @@ async def extract_permissions(response: HTTPResponse) -> list[Permission]:
 async def extract_permission(response: HTTPResponse) -> Permission:
     perm = response.body
     return Permission.parse_obj(perm)
+
+
+async def extract_tokens(response: HTTPResponse) -> UserTokens:
+    tokens = response.body
+    return UserTokens.parse_obj(tokens)

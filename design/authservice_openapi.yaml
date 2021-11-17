@@ -668,16 +668,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AssignRole'
-      description: Assign Role to the User by uuid, returns array of all individual user Roles.
+      description: Assign Role to the User by uuid, returns assigned Role.
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Role'
+                $ref: '#/components/schemas/Role'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '400':
