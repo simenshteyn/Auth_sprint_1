@@ -5,7 +5,7 @@ from flask import Blueprint, make_response, request, jsonify
 from pydantic import BaseModel, ValidationError
 
 from core.containers import Container
-from core.utils import make_service_exception
+from core.utils import make_service_exception, ServiceException
 from services.permission import PermissionService
 
 permission = Blueprint('permission', __name__, url_prefix='/permission')
@@ -43,8 +43,8 @@ def create_permission(
         new_perm = perm_service.create_permission(
             create_request.permission_name
         )
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
 
     return make_response(
         jsonify(uuid=new_perm.permission_id,
@@ -72,8 +72,8 @@ def edit_permission(perm_uuid: str,
             permission_id=perm_uuid,
             permission_name=edit_request.permission_name
         )
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
 
     return make_response(
         jsonify(uuid=edited_perm.permission_id,
@@ -89,8 +89,8 @@ def delete_permission(perm_uuid: str,
                           Container.perm_service]):
     try:
         deleted_perm = perm_service.delete_permission(permission_id=perm_uuid)
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
     return make_response(
         jsonify(uuid=deleted_perm.permission_id,
                 permission_name=deleted_perm.permission_name),

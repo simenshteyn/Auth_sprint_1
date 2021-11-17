@@ -5,7 +5,7 @@ from flask import Blueprint, make_response, request, jsonify
 from pydantic import BaseModel, ValidationError
 
 from core.containers import Container
-from core.utils import make_service_exception
+from core.utils import make_service_exception, ServiceException
 from models.permission import Permission
 from services.role import RoleService
 
@@ -44,8 +44,8 @@ def create_role(role_service: RoleService = Provide[Container.role_service]):
 
     try:
         new_role = role_service.create_role(create_request.role_name)
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
 
     return make_response(
         jsonify(uuid=new_role.role_id, role_name=new_role.role_name),
@@ -71,8 +71,8 @@ def edit_role(role_uuid: str,
             role_id=role_uuid,
             role_name=edit_request.role_name
         )
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
 
     return make_response(
         jsonify(uuid=edited_role.role_id, role_name=edited_role.role_name),
@@ -86,8 +86,8 @@ def delete_role(role_uuid: str,
                 role_service: RoleService = Provide[Container.role_service]):
     try:
         deleted_role = role_service.delete_role(role_id=role_uuid)
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
     return make_response(
         jsonify(uuid=deleted_role.role_id, role_name=deleted_role.role_name),
         HTTPStatus.OK
@@ -123,8 +123,8 @@ def set_role_permissions(
         new_perm: Permission = role_service.set_role_permissions(
             role_id=role_uuid,
             perm_id=set_request.permission_uuid)
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
     return make_response(
         jsonify(uuid=new_perm.permission_id,
                 permission_name=new_perm.permission_name),
@@ -144,8 +144,8 @@ def remove_role_permissions(
             role_id=role_uuid,
             perm_id=perm_uuid
         )
-    except Exception as err:
-        return make_response(jsonify(str(err)), HTTPStatus.BAD_REQUEST)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
     return make_response(
         jsonify(uuid=deleted_perm.permission_id,
                 permission_name=deleted_perm.permission_name),
