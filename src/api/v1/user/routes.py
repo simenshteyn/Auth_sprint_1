@@ -10,20 +10,23 @@ from core.containers import Container
 from flask import request
 from pydantic import BaseModel, constr, EmailStr, ValidationError
 
-from core.utils import make_service_exception, ServiceException
+from core.utils import make_service_exception, ServiceException, \
+    authenticate
 
 user = Blueprint('user', __name__, url_prefix='/user')
-
-
-class SignupRequest(BaseModel):
-    username: constr(min_length=1, strip_whitespace=True, to_lower=True)
-    password: constr(min_length=1, strip_whitespace=True)
-    email: EmailStr
 
 
 class LoginRequest(BaseModel):
     username: constr(min_length=1, strip_whitespace=True, to_lower=True)
     password: constr(min_length=1, strip_whitespace=True)
+
+
+class SignupRequest(LoginRequest):
+    email: EmailStr
+
+
+class ModifyRequest(LoginRequest):
+    pass
 
 
 @user.route('/signup', methods=["POST"])
@@ -107,3 +110,67 @@ def refresh(user_service: UserService = Provide[Container.user_service]):
 
     return make_response(jsonify(access_token=access_token,
                                  refresh_token=refresh_token))
+
+
+@user.route('/auth/logout', methods=["POST"])
+@jwt_required()
+@authenticate()
+@inject
+def logout(user_id: str,
+           user_service: UserService = Provide[Container.user_service]):
+    access_token = request.headers['Authorization'].split().pop(-1)
+    request_json = request.json
+    refresh_token = request_json['refresh_token']
+
+    try:
+        access_token, refresh_token = user_service.logout(
+            user_id=user_id,
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+
+    return make_response(jsonify(access_token=access_token,
+                                 refresh_token=refresh_token))
+
+
+@user.route('/auth', methods=["PATCH"])
+@jwt_required()
+@authenticate()
+@inject
+def modify(
+        user_id: str,
+        user_service: UserService = Provide[Container.user_service]):
+    request_json = request.json
+
+    try:
+        modify_request = ModifyRequest(**request_json)
+    except ValidationError as err:
+        service_exception = make_service_exception(err)
+        return make_response(
+            jsonify(service_exception),
+            HTTPStatus.BAD_REQUEST)
+
+    try:
+        user_service.modify(user_id, modify_request.username,
+                            modify_request.password)
+    except ServiceException as err:
+        return make_response(jsonify(err), 400)
+
+    return make_response({}, HTTPStatus.ACCEPTED)
+
+
+@user.route('/auth', methods=["GET"])
+@jwt_required()
+@authenticate()
+@inject
+def auth_history(user_id: str,
+                 user_service: UserService = Provide[Container.user_service]
+                 ):
+    try:
+        history = user_service.get_auth_history(user_id)
+    except ServiceException as err:
+        return make_response(jsonify(err), 400)
+
+    return make_response(jsonify(history), HTTPStatus.OK)
