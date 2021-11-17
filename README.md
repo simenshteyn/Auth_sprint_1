@@ -23,3 +23,7 @@ OpenAPI design: `/design/authservice_openapi.yaml`
 5.Clear up docker:
 
 `$ docker-compose down -v`
+
+6. Execute superadmin console command:
+
+`$ docker exec --env FLASK_APP=main -it auth_app flask manage createsuperuser`

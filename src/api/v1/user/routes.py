@@ -49,7 +49,7 @@ def signup(user_service: UserService = Provide[Container.user_service]):
     user_info = {'user-agent': request.headers.get('User-Agent')}
 
     try:
-        access_token, refresh_token = user_service.create_user(
+        access_token, refresh_token = user_service.register_user(
             signup_request.username,
             signup_request.password,
             signup_request.email,
