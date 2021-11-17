@@ -1,5 +1,5 @@
 from tests.functional.utils.models import Role, Permission, HTTPResponse, \
-    UserTokens
+    UserTokens, ServiceError
 
 
 async def extract_roles(response: HTTPResponse) -> list[Role]:
@@ -23,3 +23,8 @@ async def extract_permission(response: HTTPResponse) -> Permission:
 async def extract_tokens(response: HTTPResponse) -> UserTokens:
     tokens = response.body
     return UserTokens.parse_obj(tokens)
+
+
+async def extract_error(response: HTTPResponse) -> ServiceError:
+    exc = response.body
+    return ServiceError.parse_obj(exc)

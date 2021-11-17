@@ -12,16 +12,19 @@ async def test_permission_endpoint_crud(make_post_request, make_get_request,
     """ Test CRUD cycle for Permission: create, read, update and delete."""
     response = await make_post_request('permission/',
                                        json={'permission_name': 'test_perm'})
+    # Create permission
     perm = await extract_permission(response)
     assert response.status == HTTPStatus.OK
     assert perm.permission_name == 'test_perm'
     perm_uuid = perm.uuid
 
+    # Check permission is created
     response = await make_get_request('permission/')
     perms = await extract_permissions(response)
     assert response.status == HTTPStatus.OK
     assert len(perms) > 0
 
+    # Rename permission
     response = await make_patch_request(
         f'permission/{perm_uuid}',
         json={'permission_name': 'test_perm_2'}
@@ -30,6 +33,7 @@ async def test_permission_endpoint_crud(make_post_request, make_get_request,
     assert response.status == HTTPStatus.OK
     assert perm.permission_name == 'test_perm_2'
 
+    # Remove created permission by UUID
     response = await make_delete_request(f'permission/{perm_uuid}')
     perm = await extract_permission(response)
     assert response.status == HTTPStatus.OK

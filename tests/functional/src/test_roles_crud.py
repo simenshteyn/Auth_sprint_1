@@ -4,11 +4,12 @@ import pytest
 from http import HTTPStatus
 
 from tests.functional.utils.extract import extract_roles, extract_role, \
-    extract_permission, extract_permissions, extract_tokens
+    extract_permission, extract_permissions, extract_tokens, extract_error
 
 
 def get_user_uuid(pg_curs, username: str, table_name: str = 'users',
                   scheme: str = 'app') -> str:
+    """Get user uuid from username directly from database. """
     statement = textwrap.dedent(
         f'SELECT user_id FROM {scheme}.{table_name} WHERE user_login = %s ;'
     )
@@ -16,27 +17,41 @@ def get_user_uuid(pg_curs, username: str, table_name: str = 'users',
     return pg_curs.fetchone()[0]
 
 
+def remove_user(pg_curs, user_id: str, table_name: str = 'users',
+                scheme: str = 'app') -> None:
+    """Remove user with given UUID from database. """
+    statement = textwrap.dedent(
+        f'DELETE FROM {scheme}.{table_name} WHERE user_id = %s ;'
+    )
+    pg_curs.execute(statement, (user_id,))
+
+
 @pytest.mark.asyncio
 async def test_role_endpoint_crud(make_post_request, make_get_request,
                                   make_patch_request, make_delete_request):
+    """Test roles CRUD cycle: creation, read, update and deletion. """
     response = await make_post_request('role/',
                                        json={'role_name': 'test_role'})
+    # Create new role
     role = await extract_role(response)
     assert response.status == HTTPStatus.OK
     assert role.role_name == 'test_role'
     role_uuid = role.uuid
 
+    # Get list of roles with created one
     response = await make_get_request('role/')
     roles = await extract_roles(response)
     assert response.status == HTTPStatus.OK
     assert len(roles) > 0
 
+    # Rename role by UUID
     response = await make_patch_request(f'role/{role_uuid}',
                                         json={'role_name': 'test_role_2'})
     role = await extract_role(response)
     assert response.status == HTTPStatus.OK
     assert role.role_name == 'test_role_2'
 
+    # Remove role by UUID
     response = await make_delete_request(f'role/{role_uuid}')
     role = await extract_role(response)
     assert response.status == HTTPStatus.OK
@@ -174,3 +189,19 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     user_roles = await extract_roles(response)
     assert response.status == HTTPStatus.OK
     assert len(user_roles) == 0
+
+    # Remove created permission
+    response = await make_delete_request(f'permission/{perm_uuid}')
+    perm = await extract_permission(response)
+    assert response.status == HTTPStatus.OK
+    assert perm.uuid == perm_uuid
+
+    # Remove created role
+    response = await make_delete_request(f'role/{role_uuid}')
+    removed_role = await extract_role(response)
+    assert response.status == HTTPStatus.OK
+    assert removed_role.role_name == 'testing_role'
+    assert removed_role.uuid == role_uuid
+
+    # Remove created user
+    remove_user(pg_curs, user_uuid)
