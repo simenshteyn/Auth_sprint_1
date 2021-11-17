@@ -23,7 +23,10 @@ class PermissionSetRequest(BaseModel):
 @role.route('/', methods=['GET'])
 @inject
 def get_roles(role_service: RoleService = Provide[Container.role_service]):
-    role_list = role_service.get_roles_list()
+    try:
+        role_list = role_service.get_roles_list()
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
     result = [{'uuid': role.role_id,
                'role_name': role.role_name} for role in role_list]
     return jsonify(result)
@@ -41,7 +44,6 @@ def create_role(role_service: RoleService = Provide[Container.role_service]):
             jsonify(service_exception),
             HTTPStatus.BAD_REQUEST
         )
-
     try:
         new_role = role_service.create_role(create_request.role_name)
     except ServiceException as err:
@@ -99,7 +101,10 @@ def delete_role(role_uuid: str,
 def get_role_permissions(
         role_uuid: str,
         role_service: RoleService = Provide[Container.role_service]):
-    perm_list = role_service.get_role_permissions(role_uuid)
+    try:
+        perm_list = role_service.get_role_permissions(role_uuid)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
     result = [{'uuid': perm.permission_id,
                'permission_name': perm.permission_name} for perm in perm_list]
     return jsonify(result)

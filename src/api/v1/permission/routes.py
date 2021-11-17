@@ -19,7 +19,10 @@ class PermissionCreationRequest(BaseModel):
 @inject
 def get_permissions(
         perm_service: PermissionService = Provide[Container.perm_service]):
-    perm_list = perm_service.get_permission_list()
+    try:
+        perm_list = perm_service.get_permission_list()
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
     result = [{'uuid': perm.permission_id,
                'permission_name': perm.permission_name} for perm in perm_list]
     return jsonify(result)
@@ -74,7 +77,6 @@ def edit_permission(perm_uuid: str,
         )
     except ServiceException as err:
         return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
-
     return make_response(
         jsonify(uuid=edited_perm.permission_id,
                 permission_name=edited_perm.permission_name),
