@@ -161,3 +161,16 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     assert response.status == HTTPStatus.OK
     assert len(assigned_roles) == 1
     assert assigned_roles[0].role_name == 'testing_role'
+
+    # Remove assigned role from created user
+    response = await make_delete_request(f'user/{user_uuid}/roles{role_uuid}')
+    removed_role = await extract_role(response)
+    assert response.status == HTTPStatus.OK
+    assert removed_role.role_name == 'testing_role'
+    assert removed_role.uuid == role_uuid
+
+    # Check role is excluded from users role list
+    response = await make_get_request(f'user/{user_uuid}/roles')
+    user_roles = await extract_roles(response)
+    assert response.status == HTTPStatus.OK
+    assert len(user_roles) == 0
