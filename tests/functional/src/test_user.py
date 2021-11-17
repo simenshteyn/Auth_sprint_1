@@ -280,7 +280,7 @@ class TestUser:
                                     response_json,
                                     headers)
 
-        assert response.status_code == 400, \
+        assert response.status_code == 401, \
             "Invalid response code when making unauthenticated request"
         assert response.json().get("error_code") == "ACCESS_TOKEN_EXPIRED", \
             "Invalid error_code when making unauthenticated request"

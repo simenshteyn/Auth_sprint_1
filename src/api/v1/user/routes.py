@@ -114,22 +114,17 @@ def refresh(user_service: UserService = Provide[Container.user_service]):
 
 @user.route('/auth/logout', methods=["POST"])
 @jwt_required()
+@authenticate()
 @inject
-def logout(user_service: UserService = Provide[Container.user_service]):
+def logout(user_id: str,
+           user_service: UserService = Provide[Container.user_service]):
     access_token = request.headers['Authorization'].split().pop(-1)
     request_json = request.json
     refresh_token = request_json['refresh_token']
 
-    jwt = get_jwt()
-    if 'user_id' not in jwt:
-        return make_response(
-            jsonify(error_mode='IDENTITY_MISSING',
-                    message="User id not found in decrypted content"),
-            HTTPStatus.BAD_REQUEST)
-
     try:
         access_token, refresh_token = user_service.logout(
-            user_id=jwt['user_id'],
+            user_id=user_id,
             access_token=access_token,
             refresh_token=refresh_token
         )
