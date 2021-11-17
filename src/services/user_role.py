@@ -50,3 +50,28 @@ class UserRoleService:
 
         new_role: Role = Role.query.get(role_id)
         return new_role
+
+    def remove_role_from_user(self, user_id: str, role_id: str):
+        existing_user: User = User.query.get(user_id)
+        if not existing_user:
+            error_code = 'USER_NOT_FOUND'
+            message = 'Unknown user UUID'
+            raise ServiceException(error_code=error_code, message=message)
+
+        existing_role: Role = Role.query.get(role_id)
+        if not existing_role:
+            error_code = 'ROLE_NOT_FOUND'
+            message = 'Unknown role UUID'
+            raise ServiceException(error_code=error_code, message=message)
+
+        existing_role_ownership: RoleOwner = RoleOwner.query.filter(
+            RoleOwner.role_id == role_id).filter(
+            RoleOwner.owner_id == user_id).first()
+        if not existing_role_ownership:
+            error_code = 'NO_ROLE_OWNERSHIP'
+            message = 'User has no ownership over this role'
+            raise ServiceException(error_code=error_code, message=message)
+        role = Role.query.get(role_id)
+        db.session.delete(existing_role_ownership)
+        db.session.commit()
+        return role

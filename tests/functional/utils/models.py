@@ -24,3 +24,8 @@ class Permission(BaseModel):
 class UserTokens(BaseModel):
     access_token: constr(min_length=1)
     refresh_token: constr(min_length=1)
+
+
+class ServiceError(BaseModel):
+    error_code: str
+    message: str
