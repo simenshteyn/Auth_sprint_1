@@ -4,7 +4,7 @@ import pytest
 from http import HTTPStatus
 
 from tests.functional.utils.extract import extract_roles, extract_role, \
-    extract_permission, extract_permissions, extract_tokens, extract_error
+    extract_permission, extract_permissions, extract_tokens, extract_perm_check
 
 
 def get_user_uuid(pg_curs, username: str, table_name: str = 'users',
@@ -64,19 +64,19 @@ async def test_role_permissions_assigment(
         make_post_request, make_get_request, make_delete_request):
     """Test permissions CRUD assigment: create, assign and remove process. """
     response = await make_post_request('role/',
-                                       json={'role_name': 'testing_role'})
+                                       json={'role_name': 'testing_r'})
     # Create new role and save it's uuid
     created_role = await extract_role(response)
     assert response.status == HTTPStatus.OK
-    assert created_role.role_name == 'testing_role'
+    assert created_role.role_name == 'testing_r'
     role_uuid = created_role.uuid
 
     # Create new permission and save it's uuid
     response = await make_post_request('permission/',
-                                       json={'permission_name': 'testing_per'})
+                                       json={'permission_name': 'testing_p'})
     created_permission = await extract_permission(response)
     assert response.status == HTTPStatus.OK
-    assert created_permission.permission_name == 'testing_per'
+    assert created_permission.permission_name == 'testing_p'
     perm_uuid = created_permission.uuid
 
     # Assign created permission to created role
@@ -85,14 +85,14 @@ async def test_role_permissions_assigment(
     assigned_permission = await extract_permission(response)
     assert response.status == HTTPStatus.OK
     assert assigned_permission.uuid == perm_uuid
-    assert assigned_permission.permission_name == 'testing_per'
+    assert assigned_permission.permission_name == 'testing_p'
 
     # Get permissions for created role
     response = await make_get_request(f'role/{role_uuid}/permissions')
     permissions_list = await extract_permissions(response)
     assert response.status == HTTPStatus.OK
     assert len(permissions_list) == 1
-    assert permissions_list[0].permission_name == 'testing_per'
+    assert permissions_list[0].permission_name == 'testing_p'
     assert permissions_list[0].uuid == perm_uuid
 
     # Remove created permission from Role
@@ -100,7 +100,7 @@ async def test_role_permissions_assigment(
         f'role/{role_uuid}/permissions/{perm_uuid}')
     removed_permission = await extract_permission(response)
     assert response.status == HTTPStatus.OK
-    assert removed_permission.permission_name == 'testing_per'
+    assert removed_permission.permission_name == 'testing_p'
     assert removed_permission.uuid == perm_uuid
 
     # Chek removed permission is excluded from role
@@ -113,7 +113,7 @@ async def test_role_permissions_assigment(
     response = await make_delete_request(f'role/{role_uuid}')
     removed_role = await extract_role(response)
     assert response.status == HTTPStatus.OK
-    assert removed_role.role_name == 'testing_role'
+    assert removed_role.role_name == 'testing_r'
     assert removed_role.uuid == role_uuid
 
     # Remove created permission
@@ -126,7 +126,7 @@ async def test_role_permissions_assigment(
 @pytest.mark.asyncio
 async def test_user_role_assigment(make_post_request, make_get_request,
                                    make_delete_request, pg_curs):
-    """Test full cycle of Role assigment to User: add, get, remove. """
+    """Test full cycle of Role assigment to User: add, get, check, remove. """
     response = await make_post_request('user/signup',
                                        json={'username': 'some_test_user',
                                              'password': 'some_password',
@@ -162,6 +162,13 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     assert assigned_permission.uuid == perm_uuid
     assert assigned_permission.permission_name == 'testing_per'
 
+    # Check if created User don't have permission by uuid till it assigned
+    response = await make_get_request(
+        f'user/{user_uuid}/permissions/{perm_uuid}')
+    perm_check = await extract_perm_check(response)
+    assert response.status == HTTPStatus.OK
+    assert not perm_check.is_permitted
+
     # Assign created role to created user
     response = await make_post_request(f'user/{user_uuid}/roles',
                                        json={'role_uuid': role_uuid})
@@ -177,12 +184,33 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     assert len(assigned_roles) == 1
     assert assigned_roles[0].role_name == 'testing_role'
 
+    # Get permissions list for created user
+    response = await make_get_request(f'user/{user_uuid}/permissions')
+    user_perms = await extract_permissions(response)
+    assert response.status == HTTPStatus.OK
+    assert len(user_perms) == 1
+    assert user_perms[0].permission_name == 'testing_per'
+
+    # Check if created User have permission by uuid
+    response = await make_get_request(
+        f'user/{user_uuid}/permissions/{perm_uuid}')
+    perm_check = await extract_perm_check(response)
+    assert response.status == HTTPStatus.OK
+    assert perm_check.is_permitted
+
     # Remove assigned role from created user
     response = await make_delete_request(f'user/{user_uuid}/roles/{role_uuid}')
     removed_role = await extract_role(response)
     assert response.status == HTTPStatus.OK
     assert removed_role.role_name == 'testing_role'
     assert removed_role.uuid == role_uuid
+
+    # Check if created User lost permission by uuid after role removing
+    response = await make_get_request(
+        f'user/{user_uuid}/permissions/{perm_uuid}')
+    perm_check = await extract_perm_check(response)
+    assert response.status == HTTPStatus.OK
+    assert not perm_check.is_permitted
 
     # Check role is excluded from users role list
     response = await make_get_request(f'user/{user_uuid}/roles')

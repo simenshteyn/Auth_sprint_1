@@ -27,3 +27,9 @@ class RolePermission(db.Model):
         db.ForeignKey('app.permissions.permission_id'),
         nullable=False
     )
+
+    def __eq__(self, other):
+        return self.role_permission_id == other.role_permission_id
+
+    def __hash__(self):
+        return hash(self.role_permission_id)

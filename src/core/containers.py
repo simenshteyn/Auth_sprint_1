@@ -6,6 +6,7 @@ from services.role import RoleService
 from services.user import UserService
 from services.permission import PermissionService
 from services.user_role import UserRoleService
+from services.user_perms import UserPermsService
 
 
 class Container(containers.DeclarativeContainer):
@@ -24,3 +25,4 @@ class Container(containers.DeclarativeContainer):
     role_service = providers.Factory(RoleService)
     perm_service = providers.Factory(PermissionService)
     user_role_service = providers.Factory(UserRoleService)
+    user_perm_service = providers.Factory(UserPermsService)

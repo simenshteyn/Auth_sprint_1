@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, make_response
 from dependency_injector.wiring import inject, Provide
 from flask_jwt_extended import jwt_required, get_jwt
 
+from models.permission import Permission
 from models.role import Role
 from services.user import UserService
 from core.containers import Container
@@ -13,6 +14,7 @@ from pydantic import BaseModel, constr, EmailStr, ValidationError
 
 from core.utils import make_service_exception, ServiceException, \
     authenticate
+from services.user_perms import UserPermsService
 from services.user_role import UserRoleService
 
 user = Blueprint('user', __name__, url_prefix='/user')
@@ -239,3 +241,35 @@ def remove_role_from_user(user_uuid: str,
     return make_response(
         jsonify(uuid=role.role_id, role_name=role.role_name), HTTPStatus.OK
     )
+
+
+@user.route('/<uuid:user_uuid>/permissions', methods=['GET'])
+@inject
+def get_user_perms_list(
+        user_uuid: str,
+        user_perm_service: UserPermsService = Provide[
+            Container.user_perm_service]):
+    try:
+        perms_list: list[Permission] = user_perm_service.get_user_perms_list(
+            user_uuid)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+    result = [{'uuid': perm.permission_id,
+               'permission_name': perm.permission_name} for perm in perms_list]
+    return jsonify(result)
+
+
+@user.route('/<uuid:user_uuid>/permissions/<uuid:perm_uuid>', methods=['GET'])
+@inject
+def check_user_perm(
+        user_uuid: str,
+        perm_uuid: str,
+        user_perm_service: UserPermsService = Provide[
+            Container.user_perm_service]):
+    try:
+        is_permitted = user_perm_service.check_user_perm(user_uuid, perm_uuid)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+    return jsonify(user_uuid=user_uuid,
+                   permission_uuid=perm_uuid,
+                   is_permitted=is_permitted)
