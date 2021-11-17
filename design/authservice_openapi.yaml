@@ -465,16 +465,20 @@ paths:
       summary: Assign Permission to the Role
       tags:
         - Roles
-      description: Assign Permission to the Role, returns array of role Permissions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignPermission'
+      description: Assign Permission to the Role, returns assigned Permission.
       responses:
         '201':
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Permission'
+                $ref: '#/components/schemas/Permission'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '400':
@@ -501,7 +505,7 @@ paths:
       summary: Remove Permission from Role by uuid.
       tags:
         - Roles
-      description: Delete Permission from Role by uuid, returns deleted Role.
+      description: Delete Permission from Role by uuid, returns deleted Permission.
       responses:
         '200':
           description: OK
@@ -664,16 +668,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AssignRole'
-      description: Assign Role to the User by uuid, returns array of all individual user Roles.
+      description: Assign Role to the User by uuid, returns assigned Role.
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Role'
+                $ref: '#/components/schemas/Role'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '400':

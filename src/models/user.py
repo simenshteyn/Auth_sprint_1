@@ -10,7 +10,7 @@ class User(db.Model):
     __tablename__ = 'users'
     __table_args__ = {"schema": "app"}
 
-    user_id = db.Column(UUID,
+    user_id = db.Column(UUID(as_uuid=True),
                         primary_key=True,
                         server_default=DefaultClause(
                             text("gen_random_uuid()")))

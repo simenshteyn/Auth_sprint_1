@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from multidict import CIMultiDictProxy
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 
 
 @dataclass
@@ -14,3 +14,13 @@ class HTTPResponse:
 class Role(BaseModel):
     uuid: str
     role_name: str
+
+
+class Permission(BaseModel):
+    uuid: str
+    permission_name: str
+
+
+class UserTokens(BaseModel):
+    access_token: constr(min_length=1)
+    refresh_token: constr(min_length=1)

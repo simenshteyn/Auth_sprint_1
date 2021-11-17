@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, make_response
 from dependency_injector.wiring import inject, Provide
 from flask_jwt_extended import jwt_required, get_jwt
 
+from models.role import Role
 from services.user import UserService
 from core.containers import Container
 
@@ -12,6 +13,7 @@ from pydantic import BaseModel, constr, EmailStr, ValidationError
 
 from core.utils import make_service_exception, ServiceException, \
     authenticate
+from services.user_role import UserRoleService
 
 user = Blueprint('user', __name__, url_prefix='/user')
 
@@ -174,3 +176,50 @@ def auth_history(user_id: str,
         return make_response(jsonify(err), 400)
 
     return make_response(jsonify(history), HTTPStatus.OK)
+
+
+class UserRoleAssignRequest(BaseModel):
+    role_uuid: str
+
+
+@user.route('/<uuid:user_uuid>/roles', methods=['POST'])
+@inject
+def assign_user_role(
+        user_uuid: str,
+        user_role_service: UserRoleService = Provide[
+            Container.user_role_service]):
+    request_json = request.json
+    try:
+        set_request = UserRoleAssignRequest(**request_json)
+    except ValidationError as err:
+        service_exception = make_service_exception(err)
+        return make_response(
+            jsonify(service_exception),
+            HTTPStatus.BAD_REQUEST
+        )
+    try:
+        new_role: Role = user_role_service.assign_user_role(
+            user_id=user_uuid,
+            role_id=set_request.role_uuid)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+    return make_response(
+        jsonify(uuid=new_role.role_id,
+                role_name=new_role.role_name),
+        HTTPStatus.OK
+    )
+
+
+@user.route('/<uuid:user_uuid>/roles', methods=['GET'])
+@inject
+def get_user_roles_list(
+        user_uuid: str,
+        user_role_service: UserRoleService = Provide[
+            Container.user_role_service]):
+    try:
+        roles_list = user_role_service.get_user_roles_list(user_uuid)
+    except ServiceException as err:
+        return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+    result = [{'uuid': role.role_id,
+               'role_name': role.role_name} for role in roles_list]
+    return jsonify(result)
