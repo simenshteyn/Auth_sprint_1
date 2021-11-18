@@ -1,5 +1,11 @@
-from core.utils import ServiceException
-from models.permission import Permission
+from http import HTTPStatus
+from typing import Union
+
+from flask import Request, make_response, jsonify, Response
+from pydantic import ValidationError
+
+from core.utils import ServiceException, make_service_exception
+from models.permission import Permission, PermissionCreationRequest
 from db.pg import db
 
 
@@ -50,3 +56,17 @@ class PermissionService:
         db.session.delete(existing_permission)
         db.session.commit()
         return existing_permission
+
+    def validate_request(
+            self, request: Request
+            ) -> Union[PermissionCreationRequest, Response]:
+        request_json = request.json
+        try:
+            create_request = PermissionCreationRequest(**request_json)
+        except ValidationError as err:
+            service_exception = make_service_exception(err)
+            return make_response(
+                jsonify(service_exception),
+                HTTPStatus.BAD_REQUEST
+            )
+        return create_request

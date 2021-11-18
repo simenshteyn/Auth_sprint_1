@@ -23,3 +23,7 @@ class Permission(db.Model):
 
 class PermissionSetRequest(BaseModel):
     permission_uuid: str
+
+
+class PermissionCreationRequest(BaseModel):
+    permission_name: str

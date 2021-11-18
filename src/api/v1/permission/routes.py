@@ -2,17 +2,12 @@ from http import HTTPStatus
 
 from dependency_injector.wiring import inject, Provide
 from flask import Blueprint, make_response, request, jsonify
-from pydantic import BaseModel, ValidationError
 
 from core.containers import Container
-from core.utils import make_service_exception, ServiceException
+from core.utils import ServiceException
 from services.permission import PermissionService
 
 permission = Blueprint('permission', __name__, url_prefix='/permission')
-
-
-class PermissionCreationRequest(BaseModel):
-    permission_name: str
 
 
 @permission.route('/', methods=['GET'])
@@ -32,16 +27,7 @@ def get_permissions(
 @inject
 def create_permission(
         perm_service: PermissionService = Provide[Container.perm_service]):
-    request_json = request.json
-    try:
-        create_request = PermissionCreationRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST
-        )
-
+    create_request = perm_service.validate_request(request)
     try:
         new_perm = perm_service.create_permission(
             create_request.permission_name
@@ -61,15 +47,7 @@ def create_permission(
 def edit_permission(perm_uuid: str,
                     perm_service: PermissionService = Provide[
                         Container.perm_service]):
-    request_json = request.json
-    try:
-        edit_request = PermissionCreationRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST
-        )
+    edit_request = perm_service.validate_request(request)
     try:
         edited_perm = perm_service.edit_permission(
             permission_id=perm_uuid,

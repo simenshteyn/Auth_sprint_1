@@ -1,6 +1,7 @@
 from http import HTTPStatus
+from typing import Union
 
-from flask import Request, make_response, jsonify
+from flask import Request, make_response, jsonify, Response
 from pydantic import ValidationError
 
 from core.utils import ServiceException, make_service_exception
@@ -104,7 +105,8 @@ class RoleService:
         db.session.commit()
         return perm
 
-    def validate_role_request(self, request: Request) -> RoleCreationRequest:
+    def validate_role_request(
+            self, request: Request) -> Union[RoleCreationRequest, Response]:
         """Validate role creation request"""
         request_json = request.json
         try:
@@ -117,7 +119,8 @@ class RoleService:
             )
         return create_request
 
-    def validate_perm_request(self, request: Request) -> PermissionSetRequest:
+    def validate_perm_request(
+            self, request: Request) -> Union[PermissionSetRequest, Response]:
         """Valide permission setting request. """
         request_json = request.json
         try:
