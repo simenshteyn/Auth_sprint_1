@@ -1,17 +1,16 @@
-from http import HTTPStatus
 from typing import Union
 
-from flask import Request, Response, make_response, jsonify
-from pydantic import ValidationError
+from flask import Request, Response
 
-from core.utils import ServiceException, make_service_exception
+from core.utils import ServiceException
 from db.pg import db
 from models.role import Role
 from models.roles_owners import RoleOwner
 from models.user import User, UserRoleAssignRequest
+from services.base import BaseService
 
 
-class UserRoleService:
+class UserRoleService(BaseService):
     def __init__(self):
         pass
 
@@ -84,13 +83,4 @@ class UserRoleService:
 
     def validate_assignment(
             self, request: Request) -> Union[UserRoleAssignRequest, Response]:
-        request_json = request.json
-        try:
-            set_request = UserRoleAssignRequest(**request_json)
-        except ValidationError as err:
-            service_exception = make_service_exception(err)
-            return make_response(
-                jsonify(service_exception),
-                HTTPStatus.BAD_REQUEST
-            )
-        return set_request
+        return self._validate(request, UserRoleAssignRequest)

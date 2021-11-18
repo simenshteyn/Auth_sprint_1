@@ -1,9 +1,7 @@
 import os
-from http import HTTPStatus
 from typing import Union
 
-from flask import Request, Response, make_response, jsonify
-from pydantic import ValidationError
+from flask import Request, Response
 
 from db.pg import db
 from models.auth_event import AuthEvent
@@ -13,8 +11,9 @@ from models.user import User, SignupRequest, LoginRequest, ModifyRequest
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, create_refresh_token
 
-from core.utils import ServiceException, make_service_exception
+from core.utils import ServiceException
 from db.redis_client import redis
+from services.base import BaseService
 
 
 def generate_tokens(user: User):
@@ -36,7 +35,7 @@ def authenticate(access_token) -> None:
                                message="Access token has expired")
 
 
-class UserService:
+class UserService(BaseService):
     def create_user(self,
                     username: str,
                     password: str,
@@ -219,36 +218,12 @@ class UserService:
 
     def validate_signup(
             self, request: Request) -> Union[SignupRequest, Response]:
-        request_json = request.json
-        try:
-            signup_request = SignupRequest(**request_json)
-        except ValidationError as err:
-            service_exception = make_service_exception(err)
-            return make_response(
-                jsonify(service_exception),
-                HTTPStatus.BAD_REQUEST)
-        return signup_request
+        return self._validate(request, SignupRequest)
 
     def validate_login(
             self, request: Request) -> Union[LoginRequest, Response]:
-        request_json = request.json
-        try:
-            login_request = LoginRequest(**request_json)
-        except ValidationError as err:
-            service_exception = make_service_exception(err)
-            return make_response(
-                jsonify(service_exception),
-                HTTPStatus.BAD_REQUEST)
-        return login_request
+        return self._validate(request, LoginRequest)
 
     def validate_modify(
             self, request: Request) -> Union[ModifyRequest, Response]:
-        request_json = request.json
-        try:
-            modify_request = ModifyRequest(**request_json)
-        except ValidationError as err:
-            service_exception = make_service_exception(err)
-            return make_response(
-                jsonify(service_exception),
-                HTTPStatus.BAD_REQUEST)
-        return modify_request
+        return self._validate(request, ModifyRequest)
