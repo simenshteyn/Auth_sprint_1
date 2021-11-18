@@ -31,7 +31,6 @@ gevent-based Flask app:
  
 `$ docker-compose down -v`
 
-6. Execute superadmin console command:
+**Execute superadmin console command:**
 
 `$ docker exec --env FLASK_APP=main -it auth_app flask manage createsuperuser`
-
