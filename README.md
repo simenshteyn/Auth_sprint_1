@@ -28,6 +28,10 @@ gevent-based Flask app:
 `$ docker-compose --profile=testing up --build`
    
  - Running tests against *gevent-based* Flask app:
+
+`$  docker-compose -f docker-compose.yml -f docker-compose.prod.yml --profile=testing up --build`
+
+- Clear docker containers with all data.
  
 `$ docker-compose down -v`
 
