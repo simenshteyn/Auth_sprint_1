@@ -4,22 +4,29 @@
 
 OpenAPI design: `/design/authservice_openapi.yaml`
 
-**Deployment instructions:**
-
-1. Create .env file with sample (change default passwords!):
+**Setup**
+1. Create .env file with sample (change the default passwords and secret keys!):
 
 `$ mv env.sample .env`
 
 `$ vi .env`
 
-3. Run project with tests:
+**Run project without tests**
 
-`$ docker-compose --profile=testing up --build`
-
-4. Run project without tests:
+standard Flask app:
 
 `$ docker-compose up --build`
 
-5.Clear up docker:
+gevent-based Flask app:
 
-`$ docker-compose down -v`
+`$ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build`
+
+
+**Testing**
+ - Running tests against the *standard* Flask app:
+   
+`$ docker-compose --profile=testing up --build`
+   
+ - Running tests against *gevent-based* Flask app:
+
+`$  docker-compose -f docker-compose.yml -f docker-compose.prod.yml --profile=testing up --build`
