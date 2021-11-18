@@ -28,5 +28,10 @@ gevent-based Flask app:
 `$ docker-compose --profile=testing up --build`
    
  - Running tests against *gevent-based* Flask app:
+ 
+`$ docker-compose down -v`
 
-`$  docker-compose -f docker-compose.yml -f docker-compose.prod.yml --profile=testing up --build`
+6. Execute superadmin console command:
+
+`$ docker exec --env FLASK_APP=main -it auth_app flask manage createsuperuser`
+
