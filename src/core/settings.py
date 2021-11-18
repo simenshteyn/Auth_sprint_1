@@ -15,6 +15,9 @@ class AppSettings(BaseSettings):
     service_host: str
     service_port: str
     service_api_version: int
+    access_token_expiration: int
+    jwt_secret_key: str
+    cache_time: int
 
 
 app_settings = {
@@ -28,6 +31,9 @@ app_settings = {
     'service_protocol': os.getenv('SERVICE_PROTOCOL'),
     'service_host': os.getenv('SERVICE_HOST'),
     'service_port': os.getenv('SERVICE_PORT'),
-    'service_api_version': os.getenv('SERVICE_API_VERSION')
+    'service_api_version': os.getenv('SERVICE_API_VERSION'),
+    'access_token_expiration': os.getenv('ACCESS_TOKEN_EXPIRATION'),
+    'jwt_secret_key': os.getenv('JWT_SECRET_KEY'),
+    'cache_time': os.getenv('CACHE_TIME')
 }
 config = AppSettings.parse_obj(app_settings)

@@ -103,7 +103,7 @@ async def test_role_permissions_assigment(
     assert removed_permission.permission_name == 'testing_p'
     assert removed_permission.uuid == perm_uuid
 
-    # Chek removed permission is excluded from role
+    # Check removed permission is excluded from role
     response = await make_get_request(f'role/{role_uuid}/permissions')
     permissions_list = await extract_permissions(response)
     assert response.status == HTTPStatus.OK
@@ -125,7 +125,7 @@ async def test_role_permissions_assigment(
 
 @pytest.mark.asyncio
 async def test_user_role_assigment(make_post_request, make_get_request,
-                                   make_delete_request, pg_curs):
+                                   make_delete_request, pg_curs, redis_client):
     """Test full cycle of Role assigment to User: add, get, check, remove. """
     response = await make_post_request('user/signup',
                                        json={'username': 'some_test_user',
@@ -162,12 +162,20 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     assert assigned_permission.uuid == perm_uuid
     assert assigned_permission.permission_name == 'testing_per'
 
+    # Check cache for that user and permission is empty
+    cache = await redis_client.get(f'{user_uuid}:{perm_uuid}')
+    assert not cache
+
     # Check if created User don't have permission by uuid till it assigned
     response = await make_get_request(
         f'user/{user_uuid}/permissions/{perm_uuid}')
     perm_check = await extract_perm_check(response)
     assert response.status == HTTPStatus.OK
     assert not perm_check.is_permitted
+
+    # Check cache for that user and permission is false
+    cache = await redis_client.get(f'{user_uuid}:{perm_uuid}')
+    assert cache == 'false'
 
     # Assign created role to created user
     response = await make_post_request(f'user/{user_uuid}/roles',
@@ -197,6 +205,10 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     perm_check = await extract_perm_check(response)
     assert response.status == HTTPStatus.OK
     assert perm_check.is_permitted
+
+    # Check user permission is cached
+    cache = await redis_client.get(f'{user_uuid}:{perm_uuid}')
+    assert cache == 'true'
 
     # Remove assigned role from created user
     response = await make_delete_request(f'user/{user_uuid}/roles/{role_uuid}')
