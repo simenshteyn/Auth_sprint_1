@@ -21,11 +21,11 @@ def make_service_exception(err: ValidationError):
     """ Transform and instance of pydantic.ValidationError
     into an instance of ServiceException"""
     first_error = err.errors().pop()
-    error_field = first_error.get("loc")[0]
-    error_reason = first_error.get("type").split(".")[-1]
+    error_field = first_error.get('loc')[0]
+    error_reason = first_error.get('type').split('.')[-1]
 
-    error_code = f"{error_field}_{error_reason}".upper()
-    message = f"{error_field} is {error_reason}"
+    error_code = f'{error_field}_{error_reason}'.upper()
+    message = f'{error_field} is {error_reason}'
 
     return ServiceException(error_code, message)
 
@@ -41,10 +41,10 @@ def authenticate():
         def decorator(*args, **kwargs):
             access_token = request.headers['Authorization'].split().pop(-1)
 
-            if not redis.get(access_token) == b"":
+            if not redis.get(access_token) == b'':
                 return make_response(
                     jsonify(error_code='ACCESS_TOKEN_EXPIRED',
-                            message="Access token has expired"),
+                            message='Access token has expired'),
                     HTTPStatus.UNAUTHORIZED
                 )
 
@@ -52,7 +52,7 @@ def authenticate():
             if 'user_id' not in jwt:
                 return make_response(
                     jsonify(error_mode='IDENTITY_MISSING',
-                            message="User id not found in decrypted content"),
+                            message='User id not found in decrypted content'),
                     HTTPStatus.BAD_REQUEST)
 
             kwargs['user_id'] = jwt['user_id']
