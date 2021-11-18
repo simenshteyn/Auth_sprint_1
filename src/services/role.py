@@ -1,6 +1,11 @@
-from core.utils import ServiceException
-from models.permission import Permission
-from models.role import Role
+from http import HTTPStatus
+
+from flask import Request, make_response, jsonify
+from pydantic import ValidationError
+
+from core.utils import ServiceException, make_service_exception
+from models.permission import Permission, PermissionSetRequest
+from models.role import Role, RoleCreationRequest
 from db.pg import db
 from models.role_permissions import RolePermission
 
@@ -98,3 +103,29 @@ class RoleService:
         db.session.delete(existing_role_perm)
         db.session.commit()
         return perm
+
+    def validate_role_request(self, request: Request) -> RoleCreationRequest:
+        """Validate role creation request"""
+        request_json = request.json
+        try:
+            create_request = RoleCreationRequest(**request_json)
+        except ValidationError as err:
+            service_exception = make_service_exception(err)
+            return make_response(
+                jsonify(service_exception),
+                HTTPStatus.BAD_REQUEST
+            )
+        return create_request
+
+    def validate_perm_request(self, request: Request) -> PermissionSetRequest:
+        """Valide permission setting request. """
+        request_json = request.json
+        try:
+            set_request = PermissionSetRequest(**request_json)
+        except ValidationError as err:
+            service_exception = make_service_exception(err)
+            return make_response(
+                jsonify(service_exception),
+                HTTPStatus.BAD_REQUEST
+            )
+        return set_request

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from pydantic import BaseModel
 from sqlalchemy import DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -18,3 +19,7 @@ class Role(db.Model):
         server_default=DefaultClause(text("gen_random_uuid()"))
     )
     role_name: str = db.Column(db.String, unique=True, nullable=False)
+
+
+class RoleCreationRequest(BaseModel):
+    role_name: str

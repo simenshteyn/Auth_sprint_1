@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from pydantic import BaseModel
 from sqlalchemy import DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -18,3 +19,7 @@ class Permission(db.Model):
         server_default=DefaultClause(text("gen_random_uuid()"))
     )
     permission_name: str = db.Column(db.String, unique=True, nullable=False)
+
+
+class PermissionSetRequest(BaseModel):
+    permission_uuid: str

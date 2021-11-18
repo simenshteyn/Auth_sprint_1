@@ -2,22 +2,13 @@ from http import HTTPStatus
 
 from dependency_injector.wiring import inject, Provide
 from flask import Blueprint, make_response, request, jsonify
-from pydantic import BaseModel, ValidationError
 
 from core.containers import Container
-from core.utils import make_service_exception, ServiceException
+from core.utils import ServiceException
 from models.permission import Permission
 from services.role import RoleService
 
 role = Blueprint('role', __name__, url_prefix='/role')
-
-
-class RoleCreationRequest(BaseModel):
-    role_name: str
-
-
-class PermissionSetRequest(BaseModel):
-    permission_uuid: str
 
 
 @role.route('/', methods=['GET'])
@@ -35,15 +26,7 @@ def get_roles(role_service: RoleService = Provide[Container.role_service]):
 @role.route('/', methods=['POST'])
 @inject
 def create_role(role_service: RoleService = Provide[Container.role_service]):
-    request_json = request.json
-    try:
-        create_request = RoleCreationRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST
-        )
+    create_request = role_service.validate_role_request(request)
     try:
         new_role = role_service.create_role(create_request.role_name)
     except ServiceException as err:
@@ -59,15 +42,7 @@ def create_role(role_service: RoleService = Provide[Container.role_service]):
 @inject
 def edit_role(role_uuid: str,
               role_service: RoleService = Provide[Container.role_service]):
-    request_json = request.json
-    try:
-        edit_request = RoleCreationRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST
-        )
+    edit_request = role_service.validate_role_request(request)
     try:
         edited_role = role_service.edit_role(
             role_id=role_uuid,
@@ -115,15 +90,7 @@ def get_role_permissions(
 def set_role_permissions(
         role_uuid: str,
         role_service: RoleService = Provide[Container.role_service]):
-    request_json = request.json
-    try:
-        set_request = PermissionSetRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST
-        )
+    set_request = role_service.validate_perm_request(request)
     try:
         new_perm: Permission = role_service.set_role_permissions(
             role_id=role_uuid,
