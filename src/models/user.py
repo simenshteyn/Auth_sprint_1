@@ -1,3 +1,4 @@
+from pydantic import BaseModel, constr, EmailStr
 from sqlalchemy import DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
@@ -29,3 +30,20 @@ class User(db.Model):
 
     def __repr__(self):
         return f'<User {self.user_login}>'
+
+
+class LoginRequest(BaseModel):
+    username: constr(min_length=1, strip_whitespace=True, to_lower=True)
+    password: constr(min_length=1, strip_whitespace=True)
+
+
+class SignupRequest(LoginRequest):
+    email: EmailStr
+
+
+class ModifyRequest(LoginRequest):
+    pass
+
+
+class UserRoleAssignRequest(BaseModel):
+    role_uuid: str

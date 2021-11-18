@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from dependency_injector.wiring import inject, Provide
-from flask import Blueprint, make_response, request, jsonify
+from flask import Blueprint, make_response, request, jsonify, Response
 
 from core.containers import Container
 from core.utils import ServiceException
@@ -28,6 +28,8 @@ def get_permissions(
 def create_permission(
         perm_service: PermissionService = Provide[Container.perm_service]):
     create_request = perm_service.validate_request(request)
+    if isinstance(create_request, Response):
+        return create_request
     try:
         new_perm = perm_service.create_permission(
             create_request.permission_name
@@ -48,6 +50,8 @@ def edit_permission(perm_uuid: str,
                     perm_service: PermissionService = Provide[
                         Container.perm_service]):
     edit_request = perm_service.validate_request(request)
+    if isinstance(edit_request, Response):
+        return edit_request
     try:
         edited_perm = perm_service.edit_permission(
             permission_id=perm_uuid,

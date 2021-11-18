@@ -1,14 +1,19 @@
 import os
+from http import HTTPStatus
+from typing import Union
+
+from flask import Request, Response, make_response, jsonify
+from pydantic import ValidationError
 
 from db.pg import db
 from models.auth_event import AuthEvent
 from models.token import Token
-from models.user import User
+from models.user import User, SignupRequest, LoginRequest, ModifyRequest
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, create_refresh_token
 
-from core.utils import ServiceException
+from core.utils import ServiceException, make_service_exception
 from db.redis_client import redis
 
 
@@ -211,3 +216,39 @@ class UserService:
         redis.set(name=access_token,
                   value="",
                   ex=os.getenv('ACCESS_TOKEN_EXPIRATION'))
+
+    def validate_signup(
+            self, request: Request) -> Union[SignupRequest, Response]:
+        request_json = request.json
+        try:
+            signup_request = SignupRequest(**request_json)
+        except ValidationError as err:
+            service_exception = make_service_exception(err)
+            return make_response(
+                jsonify(service_exception),
+                HTTPStatus.BAD_REQUEST)
+        return signup_request
+
+    def validate_login(
+            self, request: Request) -> Union[LoginRequest, Response]:
+        request_json = request.json
+        try:
+            login_request = LoginRequest(**request_json)
+        except ValidationError as err:
+            service_exception = make_service_exception(err)
+            return make_response(
+                jsonify(service_exception),
+                HTTPStatus.BAD_REQUEST)
+        return login_request
+
+    def validate_modify(
+            self, request: Request) -> Union[ModifyRequest, Response]:
+        request_json = request.json
+        try:
+            modify_request = ModifyRequest(**request_json)
+        except ValidationError as err:
+            service_exception = make_service_exception(err)
+            return make_response(
+                jsonify(service_exception),
+                HTTPStatus.BAD_REQUEST)
+        return modify_request

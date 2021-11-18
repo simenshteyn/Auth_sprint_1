@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from dependency_injector.wiring import inject, Provide
-from flask import Blueprint, make_response, request, jsonify
+from flask import Blueprint, make_response, request, jsonify, Response
 
 from core.containers import Container
 from core.utils import ServiceException
@@ -27,6 +27,8 @@ def get_roles(role_service: RoleService = Provide[Container.role_service]):
 @inject
 def create_role(role_service: RoleService = Provide[Container.role_service]):
     create_request = role_service.validate_role_request(request)
+    if isinstance(create_request, Response):
+        return create_request
     try:
         new_role = role_service.create_role(create_request.role_name)
     except ServiceException as err:
@@ -43,6 +45,8 @@ def create_role(role_service: RoleService = Provide[Container.role_service]):
 def edit_role(role_uuid: str,
               role_service: RoleService = Provide[Container.role_service]):
     edit_request = role_service.validate_role_request(request)
+    if isinstance(edit_request, Response):
+        return edit_request
     try:
         edited_role = role_service.edit_role(
             role_id=role_uuid,
@@ -91,6 +95,8 @@ def set_role_permissions(
         role_uuid: str,
         role_service: RoleService = Provide[Container.role_service]):
     set_request = role_service.validate_perm_request(request)
+    if isinstance(set_request, Response):
+        return set_request
     try:
         new_perm: Permission = role_service.set_role_permissions(
             role_id=role_uuid,

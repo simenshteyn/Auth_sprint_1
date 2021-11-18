@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from flask import Blueprint, jsonify, make_response
+from flask import Blueprint, jsonify, make_response, Response
 from dependency_injector.wiring import inject, Provide
 from flask_jwt_extended import jwt_required, get_jwt
 
@@ -10,41 +10,21 @@ from services.user import UserService
 from core.containers import Container
 
 from flask import request
-from pydantic import BaseModel, constr, EmailStr, ValidationError
 
-from core.utils import make_service_exception, ServiceException, \
-    authenticate
+from core.utils import ServiceException, authenticate
 from services.user_perms import UserPermsService
 from services.user_role import UserRoleService
 
 user = Blueprint('user', __name__, url_prefix='/user')
 
 
-class LoginRequest(BaseModel):
-    username: constr(min_length=1, strip_whitespace=True, to_lower=True)
-    password: constr(min_length=1, strip_whitespace=True)
-
-
-class SignupRequest(LoginRequest):
-    email: EmailStr
-
-
-class ModifyRequest(LoginRequest):
-    pass
-
-
 @user.route('/signup', methods=["POST"])
 @inject
 def signup(user_service: UserService = Provide[Container.user_service]):
     """ Creates a new user and returns it's access and refresh tokens """
-    request_json = request.json
-    try:
-        signup_request = SignupRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST)
+    signup_request = user_service.validate_signup(request)
+    if isinstance(signup_request, Response):
+        return signup_request
 
     user_info = {'user-agent': request.headers.get('User-Agent')}
 
@@ -68,14 +48,9 @@ def login(user_service: UserService = Provide[Container.user_service]):
     """ Log user in using username and password.
         Return a newly generated pair of tokens.
      """
-    request_json = request.json
-    try:
-        login_request = LoginRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST)
+    login_request = user_service.validate_login(request)
+    if isinstance(login_request, Response):
+        return login_request
 
     user_info = {'user-agent': request.headers.get('User-Agent')}
 
@@ -146,15 +121,9 @@ def logout(user_id: str,
 def modify(
         user_id: str,
         user_service: UserService = Provide[Container.user_service]):
-    request_json = request.json
-
-    try:
-        modify_request = ModifyRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST)
+    modify_request = user_service.validate_modify(request)
+    if isinstance(modify, Response):
+        return modify_request
 
     try:
         user_service.modify(user_id, modify_request.username,
@@ -180,25 +149,15 @@ def auth_history(user_id: str,
     return make_response(jsonify(history), HTTPStatus.OK)
 
 
-class UserRoleAssignRequest(BaseModel):
-    role_uuid: str
-
-
 @user.route('/<uuid:user_uuid>/roles', methods=['POST'])
 @inject
 def assign_user_role(
         user_uuid: str,
         user_role_service: UserRoleService = Provide[
             Container.user_role_service]):
-    request_json = request.json
-    try:
-        set_request = UserRoleAssignRequest(**request_json)
-    except ValidationError as err:
-        service_exception = make_service_exception(err)
-        return make_response(
-            jsonify(service_exception),
-            HTTPStatus.BAD_REQUEST
-        )
+    set_request = user_role_service.validate_assignment(request)
+    if isinstance(set_request, Response):
+        return set_request
     try:
         new_role: Role = user_role_service.assign_user_role(
             user_id=user_uuid,
