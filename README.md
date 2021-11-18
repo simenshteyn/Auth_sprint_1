@@ -13,11 +13,11 @@ OpenAPI design: `/design/authservice_openapi.yaml`
 
 **Run project without tests**
 
-standard Flask app:
+ - standard Flask app:
 
 `$ docker-compose up --build`
 
-gevent-based Flask app:
+ - gevent-based Flask app:
 
 `$ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build`
 

@@ -188,10 +188,11 @@ def get_user_roles_list(
 
 @user.route('/<uuid:user_uuid>/roles/<uuid:role_uuid>', methods=['DELETE'])
 @inject
-def remove_role_from_user(user_uuid: str,
-                          role_uuid: str,
-                          user_role_service: UserRoleService = Provide[
-                              Container.user_role_service]):
+def remove_role_from_user(
+        user_uuid: str,
+        role_uuid: str,
+        user_role_service: UserRoleService = Provide[
+            Container.user_role_service]):
     try:
         role = user_role_service.remove_role_from_user(user_id=user_uuid,
                                                        role_id=role_uuid)

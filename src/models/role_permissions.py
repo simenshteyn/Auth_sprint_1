@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from sqlalchemy import DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 
+from core.settings import config
 from db.pg import db
 
 
@@ -10,21 +11,21 @@ from db.pg import db
 class RolePermission(db.Model):
     __tablename__ = 'role_permissions'
 
-    __table_args__ = {'schema': 'app'}
+    __table_args__ = {'schema': config.pg_schema}
 
     role_permission_id: str = db.Column(
         UUID(as_uuid=True),
         primary_key=True,
-        server_default=DefaultClause(text("gen_random_uuid()"))
+        server_default=DefaultClause(text('gen_random_uuid()'))
     )
     role_id: str = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey('app.roles.role_id'),
+        db.ForeignKey(f'{config.pg_schema}.roles.role_id'),
         nullable=False
     )
     permission_id: str = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey('app.permissions.permission_id'),
+        db.ForeignKey(f'{config.pg_schema}.permissions.permission_id'),
         nullable=False
     )
 

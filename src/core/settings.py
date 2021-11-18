@@ -9,6 +9,7 @@ class AppSettings(BaseSettings):
     pg_dbname: str
     pg_user: str
     pg_pass: str
+    pg_schema: str
     redis_host: str
     redis_port: int
     service_protocol: str
@@ -26,6 +27,7 @@ app_settings = {
     'pg_dbname': os.getenv('POSTGRES_DB'),
     'pg_user': os.getenv('POSTGRES_USER'),
     'pg_pass': os.getenv('POSTGRES_PASSWORD'),
+    'pg_schema': os.getenv('POSTGRES_SCHEMA'),
     'redis_host': os.getenv('REDIS_HOST'),
     'redis_port': os.getenv('REDIS_PORT'),
     'service_protocol': os.getenv('SERVICE_PROTOCOL'),

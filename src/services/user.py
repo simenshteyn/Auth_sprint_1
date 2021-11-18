@@ -18,7 +18,7 @@ from services.base import BaseService
 
 def generate_tokens(user: User):
     """ Create new access and refresh tokens for the user"""
-    user_data = {"user_id": user.user_id, }
+    user_data = {'user_id': user.user_id, }
     access_token = create_access_token(
         identity=user.user_id, additional_claims=user_data
     )
@@ -30,9 +30,9 @@ def generate_tokens(user: User):
 
 def authenticate(access_token) -> None:
     """Check that access token is fresh"""
-    if not redis.get(access_token) == b"":
+    if not redis.get(access_token) == b'':
         raise ServiceException(error_code='ACCESS_TOKEN_EXPIRED',
-                               message="Access token has expired")
+                               message='Access token has expired')
 
 
 class UserService(BaseService):
@@ -47,12 +47,11 @@ class UserService(BaseService):
         if existing_user:
             if existing_user.user_login == username:
                 error_code = 'LOGIN_EXISTS'
-                message = "this username is taken"
+                message = 'this username is taken'
             else:
                 error_code = 'EMAIL_EXISTS'
-                message = "this email address is already used"
-            raise ServiceException(error_code=error_code,
-                                   message=message)
+                message = 'this email address is already used'
+            raise ServiceException(error_code=error_code, message=message)
 
         password_hash = generate_password_hash(password)
 
@@ -189,9 +188,9 @@ class UserService(BaseService):
 
         result = []
         for event in history:
-            result.append({"uuid": event.auth_event_id,
-                           "time": event.auth_event_time,
-                           "fingerprint": event.auth_event_fingerprint})
+            result.append({'uuid': event.auth_event_id,
+                           'time': event.auth_event_time,
+                           'fingerprint': event.auth_event_fingerprint})
         return result
 
     # TODO: see if this can be reused on login or disassemble it
@@ -213,7 +212,7 @@ class UserService(BaseService):
 
         db.session.commit()
         redis.set(name=access_token,
-                  value="",
+                  value='',
                   ex=os.getenv('ACCESS_TOKEN_EXPIRATION'))
 
     def validate_signup(
