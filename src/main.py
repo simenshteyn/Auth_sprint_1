@@ -1,10 +1,9 @@
-import os
-
+from flask_jwt_extended import JWTManager
 from api.common import api
 from core.commands import commands
 from core.containers import Container
+from core.settings import config
 from db.pg import PG_URI, db
-from flask_jwt_extended import JWTManager
 
 
 def create_app():
@@ -17,7 +16,7 @@ def create_app():
     app.register_blueprint(api, url_prefix='/api')
     app.register_blueprint(commands)
 
-    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+    app.config['JWT_SECRET_KEY'] = config.jwt_secret_key
     JWTManager(app)
 
     return app

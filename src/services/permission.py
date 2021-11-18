@@ -1,9 +1,14 @@
+from typing import Union
+
+from flask import Request, Response
+
 from core.utils import ServiceException
-from models.permission import Permission
+from models.permission import Permission, PermissionCreationRequest
 from db.pg import db
+from services.base import BaseService
 
 
-class PermissionService:
+class PermissionService(BaseService):
     def __init__(self):
         pass
 
@@ -50,3 +55,8 @@ class PermissionService:
         db.session.delete(existing_permission)
         db.session.commit()
         return existing_permission
+
+    def validate_request(
+            self, request: Request
+            ) -> Union[PermissionCreationRequest, Response]:
+        return self._validate(request, PermissionCreationRequest)

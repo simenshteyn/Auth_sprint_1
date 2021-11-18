@@ -56,20 +56,20 @@ def create_superuser(username: str, password: str, email: str,
 
 @commands.cli.command('createsuperuser')
 def create():
-    username = input("Super user username: ")
-    email = input("Super user email: ")
+    username = input('Super user username: ')
+    email = input('Super user email: ')
 
     while True:
-        password = getpass.getpass("Password: ")
-        password_again = getpass.getpass("Password again: ")
+        password = getpass.getpass('Password: ')
+        password_again = getpass.getpass('Password again: ')
         if password_again == password:
             break
-        print("Passwords do not match!")
+        print('Passwords do not match!')
 
     try:
         create_superuser(username, password, email)
     except ServiceException as err:
-        print(f"ERROR: {err.message}")
+        print(f'ERROR: {err.message}')
         return
 
-    print("Admin user created")
+    print('Admin user created')

@@ -1,11 +1,16 @@
+from typing import Union
+
+from flask import Request, Response
+
 from core.utils import ServiceException
-from models.permission import Permission
-from models.role import Role
+from models.permission import Permission, PermissionSetRequest
+from models.role import Role, RoleCreationRequest
 from db.pg import db
 from models.role_permissions import RolePermission
+from services.base import BaseService
 
 
-class RoleService:
+class RoleService(BaseService):
     def __init__(self):
         pass
 
@@ -98,3 +103,13 @@ class RoleService:
         db.session.delete(existing_role_perm)
         db.session.commit()
         return perm
+
+    def validate_role_request(
+            self, request: Request) -> Union[RoleCreationRequest, Response]:
+        """Validate role creation request"""
+        return self._validate(request, RoleCreationRequest)
+
+    def validate_perm_request(
+            self, request: Request) -> Union[PermissionSetRequest, Response]:
+        """Valide permission setting request. """
+        return self._validate(request, PermissionSetRequest)

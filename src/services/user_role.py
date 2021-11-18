@@ -1,11 +1,16 @@
+from typing import Union
+
+from flask import Request, Response
+
 from core.utils import ServiceException
 from db.pg import db
 from models.role import Role
 from models.roles_owners import RoleOwner
-from models.user import User
+from models.user import User, UserRoleAssignRequest
+from services.base import BaseService
 
 
-class UserRoleService:
+class UserRoleService(BaseService):
     def __init__(self):
         pass
 
@@ -75,3 +80,7 @@ class UserRoleService:
         db.session.delete(existing_role_ownership)
         db.session.commit()
         return role
+
+    def validate_assignment(
+            self, request: Request) -> Union[UserRoleAssignRequest, Response]:
+        return self._validate(request, UserRoleAssignRequest)

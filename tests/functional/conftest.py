@@ -5,6 +5,7 @@ import psycopg2
 import pytest
 from psycopg2.extras import DictCursor
 from redis import Redis
+import aioredis
 
 from tests.functional.settings import config
 from tests.functional.utils.models import HTTPResponse
@@ -141,3 +142,16 @@ def make_delete_request(session):
             )
 
     return inner
+
+
+@pytest.fixture(scope='session')
+async def redis_client():
+    pool = aioredis.ConnectionPool.from_url(
+        f'redis://{config.redis_host}:{config.redis_port}',
+        encoding='utf-8',
+        decode_responses=True
+    )
+    redis = aioredis.Redis(connection_pool=pool)
+    await redis.flushall()
+    yield redis
+    await pool.disconnect()

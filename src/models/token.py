@@ -2,22 +2,24 @@ from sqlalchemy import FetchedValue, DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
+from core.settings import config
 from db.pg import db
 
 
 class Token(db.Model):
     query: db.Query  # added for type hinting
     __tablename__ = 'tokens'
-    __table_args__ = {"schema": "app"}
+    __table_args__ = {'schema': config.pg_schema}
 
     token_id = db.Column(UUID,
                          primary_key=True,
                          server_default=DefaultClause(
-                             text("gen_random_uuid()")))
+                             text('gen_random_uuid()')))
 
-    token_owner_id = db.Column(UUID(as_uuid=True),
-                               db.ForeignKey("app.users.user_id"),
-                               nullable=False)
+    token_owner_id = db.Column(
+        UUID(as_uuid=True),
+        db.ForeignKey(f'{config.pg_schema}.users.user_id'),
+        nullable=False)
     token_value = db.Column(db.String, nullable=False)
     token_used = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(timezone=True),

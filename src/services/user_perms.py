@@ -1,4 +1,6 @@
+from core.settings import config
 from core.utils import ServiceException
+from db.redis_client import redis
 from models.permission import Permission
 from models.role_permissions import RolePermission
 from models.roles_owners import RoleOwner
@@ -34,6 +36,12 @@ class UserPermsService:
 
     def check_user_perm(self, user_id: str, perm_id: str) -> bool:
         """Check if User with given UUID have Permission with given UUID. """
+        cache_value = redis.get(f'{user_id}:{perm_id}')
+        if cache_value == 'denied':
+            return False
+        if cache_value == 'accepted':
+            return True
+
         existing_permission: Permission = Permission.query.filter(
             Permission.permission_id == perm_id).first()
         if not existing_permission:
@@ -44,6 +52,14 @@ class UserPermsService:
         user_perms: list[Permission] = self.get_user_perms_list(user_id)
         perm_ids: list[str] = [perm.permission_id for perm in user_perms]
         if perm_id in perm_ids:
+            redis.set(
+                name=f'{user_id}:{perm_id}',
+                value='accepted',
+                ex=config.cache_time)
             return True
         else:
+            redis.set(
+                name=f'{user_id}:{perm_id}',
+                value='denied',
+                ex=config.cache_time)
             return False
