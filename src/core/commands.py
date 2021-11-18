@@ -15,6 +15,11 @@ commands = Blueprint('manage', __name__)
 
 # Running this command:
 # docker exec --env FLASK_APP=main -it auth_app flask manage createsuperuser
+#
+# Note: this command doesn't use the API for security concerns:
+# the API shouldn't be usable before creating a superuser,
+# who will then grant permissions for the API usage.
+#
 
 def create_superuser(username: str, password: str, email: str,
                      role_service: RoleService = Provide[
