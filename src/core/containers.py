@@ -17,7 +17,8 @@ class Container(containers.DeclarativeContainer):
             'api.v1.routes',
             'api.v1.user.routes',
             'api.v1.role.routes',
-            'api.v1.permission.routes'
+            'api.v1.permission.routes',
+            'core.commands'
         ],
     )
 

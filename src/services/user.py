@@ -35,12 +35,7 @@ class UserService:
     def create_user(self,
                     username: str,
                     password: str,
-                    email: str,
-                    user_info: dict):
-        """ Check that a new user with these credentials can be added,
-        if so, create the user and return its access and refresh tokens,
-        otherwise, throw an exception telling what happened """
-
+                    email: str):
         existing_user: User = User.query.filter(
             (User.user_login == username) | (User.user_email == email)
         ).first()
@@ -62,7 +57,17 @@ class UserService:
                     user_email=email)
         db.session.add(user)
         db.session.commit()
+        return user
 
+    def register_user(self,
+                      username: str,
+                      password: str,
+                      email: str,
+                      user_info: dict):
+        """ Check that a new user with these credentials can be added,
+        if so, create the user and return its access and refresh tokens,
+        otherwise, throw an exception telling what happened """
+        user = self.create_user(username, password, email)
         access_token, refresh_token = generate_tokens(user)
         self.commit_authentication(user,
                                    'signup',
