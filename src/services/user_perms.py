@@ -37,9 +37,9 @@ class UserPermsService:
     def check_user_perm(self, user_id: str, perm_id: str) -> bool:
         """Check if User with given UUID have Permission with given UUID. """
         cache_value = redis.get(f'{user_id}:{perm_id}')
-        if cache_value == 'false':
+        if cache_value == 'denied':
             return False
-        if cache_value == 'true':
+        if cache_value == 'accepted':
             return True
 
         existing_permission: Permission = Permission.query.filter(
@@ -54,12 +54,12 @@ class UserPermsService:
         if perm_id in perm_ids:
             redis.set(
                 name=f'{user_id}:{perm_id}',
-                value='true',
+                value='accepted',
                 ex=config.cache_time)
             return True
         else:
             redis.set(
                 name=f'{user_id}:{perm_id}',
-                value='false',
+                value='denied',
                 ex=config.cache_time)
             return False

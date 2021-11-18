@@ -175,7 +175,7 @@ async def test_user_role_assigment(make_post_request, make_get_request,
 
     # Check cache for that user and permission is false
     cache = await redis_client.get(f'{user_uuid}:{perm_uuid}')
-    assert cache == 'false'
+    assert cache == 'denied'
 
     # Assign created role to created user
     response = await make_post_request(f'user/{user_uuid}/roles',
@@ -208,7 +208,7 @@ async def test_user_role_assigment(make_post_request, make_get_request,
 
     # Check user permission is cached
     cache = await redis_client.get(f'{user_uuid}:{perm_uuid}')
-    assert cache == 'true'
+    assert cache == 'accepted'
 
     # Remove assigned role from created user
     response = await make_delete_request(f'user/{user_uuid}/roles/{role_uuid}')
