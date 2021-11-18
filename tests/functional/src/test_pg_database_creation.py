@@ -1,5 +1,7 @@
 import textwrap
 
+from tests.functional.settings import config
+
 
 def test_db_connection(pg_conn):
     is_connected = bool(pg_conn and pg_conn.closed == 0)
@@ -7,7 +9,7 @@ def test_db_connection(pg_conn):
 
 
 def table_exists(pg_curs, id_name: str, table_name: str,
-                 scheme: str = 'app') -> bool:
+                 scheme: str = config.pg_schema) -> bool:
     statement = textwrap.dedent(
         f'SELECT {id_name} FROM {scheme}.{table_name};'
     )
