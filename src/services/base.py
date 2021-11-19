@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from typing import Union
 
-from flask import Request, Response, make_response, jsonify
+from flask import Request, Response, jsonify, make_response
 from pydantic import BaseModel, ValidationError
 
 from core.utils import make_service_exception

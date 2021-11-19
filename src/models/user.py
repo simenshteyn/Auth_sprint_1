@@ -1,4 +1,4 @@
-from pydantic import BaseModel, constr, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 from sqlalchemy import DefaultClause, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func

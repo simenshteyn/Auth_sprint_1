@@ -1,4 +1,5 @@
 from flask_jwt_extended import JWTManager
+
 from api.common import api
 from core.commands import commands
 from core.containers import Container
