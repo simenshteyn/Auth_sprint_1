@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from dependency_injector.wiring import inject, Provide
-from flask import Blueprint, make_response, request, jsonify, Response
+from dependency_injector.wiring import Provide, inject
+from flask import Blueprint, Response, jsonify, make_response, request
 
 from core.containers import Container
 from core.utils import ServiceException

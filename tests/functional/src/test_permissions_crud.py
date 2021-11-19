@@ -1,8 +1,9 @@
-import pytest
 from http import HTTPStatus
 
-from tests.functional.utils.extract import extract_permission,\
-    extract_permissions
+import pytest
+
+from tests.functional.utils.extract import (extract_permission,
+                                            extract_permissions)
 
 
 @pytest.mark.asyncio

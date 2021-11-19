@@ -1,17 +1,14 @@
 from http import HTTPStatus
 
-from flask import Blueprint, jsonify, make_response, Response
-from dependency_injector.wiring import inject, Provide
-from flask_jwt_extended import jwt_required, get_jwt
+from dependency_injector.wiring import Provide, inject
+from flask import Blueprint, Response, jsonify, make_response, request
+from flask_jwt_extended import get_jwt, jwt_required
 
+from core.containers import Container
+from core.utils import ServiceException, authenticate
 from models.permission import Permission
 from models.role import Role
 from services.user import UserService
-from core.containers import Container
-
-from flask import request
-
-from core.utils import ServiceException, authenticate
 from services.user_perms import UserPermsService
 from services.user_role import UserRoleService
 

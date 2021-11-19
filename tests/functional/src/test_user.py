@@ -3,7 +3,7 @@ import string
 
 import pytest
 import requests
-from psycopg2._psycopg import cursor, connection
+from psycopg2._psycopg import connection, cursor
 from pydantic import BaseModel, constr
 from redis import Redis
 from requests import Response

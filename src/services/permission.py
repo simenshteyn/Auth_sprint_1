@@ -3,8 +3,8 @@ from typing import Union
 from flask import Request, Response
 
 from core.utils import ServiceException
-from models.permission import Permission, PermissionCreationRequest
 from db.pg import db
+from models.permission import Permission, PermissionCreationRequest
 from services.base import BaseService
 
 

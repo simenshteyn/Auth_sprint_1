@@ -2,17 +2,15 @@ import os
 from typing import Union
 
 from flask import Request, Response
-
-from db.pg import db
-from models.auth_event import AuthEvent
-from models.token import Token
-from models.user import User, SignupRequest, LoginRequest, ModifyRequest
-
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, create_refresh_token
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from core.utils import ServiceException
+from db.pg import db
 from db.redis_client import redis
+from models.auth_event import AuthEvent
+from models.token import Token
+from models.user import LoginRequest, ModifyRequest, SignupRequest, User
 from services.base import BaseService
 
 
