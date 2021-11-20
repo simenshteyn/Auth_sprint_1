@@ -53,8 +53,11 @@ async def session():
 
 @pytest.fixture(scope='session')
 def make_get_request(session):
-    async def inner(method: str, params: dict = None) -> HTTPResponse:
+    async def inner(method: str,
+                    params: dict = None,
+                    headers: dict = None) -> HTTPResponse:
         params = params or {}
+        headers = headers or {}
         url = '{protocol}://{host}:{port}/api/v{api_version}/{method}'.format(
             protocol=config.service_protocol,
             host=config.service_host,
@@ -62,7 +65,8 @@ def make_get_request(session):
             api_version=config.service_api_version,
             method=method
         )
-        async with session.get(url, params=params) as response:
+        async with session.get(url,
+                               params=params, headers=headers) as response:
             return HTTPResponse(
                 body=await response.json(),
                 headers=response.headers,
@@ -83,8 +87,11 @@ def redis_conn():
 
 @pytest.fixture(scope='session')
 def make_post_request(session):
-    async def inner(method: str, json: dict = None) -> HTTPResponse:
+    async def inner(method: str,
+                    json: dict = None,
+                    headers: dict = None) -> HTTPResponse:
         json = json or {}
+        headers = headers or {}
         url = '{protocol}://{host}:{port}/api/v{api_version}/{method}'.format(
             protocol=config.service_protocol,
             host=config.service_host,
@@ -92,7 +99,7 @@ def make_post_request(session):
             api_version=config.service_api_version,
             method=method
         )
-        async with session.post(url, json=json) as response:
+        async with session.post(url, json=json, headers=headers) as response:
             return HTTPResponse(
                 body=await response.json(),
                 headers=response.headers,
@@ -104,8 +111,11 @@ def make_post_request(session):
 
 @pytest.fixture(scope='session')
 def make_patch_request(session):
-    async def inner(method: str, json: dict = None) -> HTTPResponse:
+    async def inner(method: str,
+                    json: dict = None,
+                    headers: dict = None) -> HTTPResponse:
         json = json or {}
+        headers = headers or {}
         url = '{protocol}://{host}:{port}/api/v{api_version}/{method}'.format(
             protocol=config.service_protocol,
             host=config.service_host,
@@ -113,7 +123,7 @@ def make_patch_request(session):
             api_version=config.service_api_version,
             method=method
         )
-        async with session.patch(url, json=json) as response:
+        async with session.patch(url, json=json, headers=headers) as response:
             return HTTPResponse(
                 body=await response.json(),
                 headers=response.headers,
@@ -125,8 +135,11 @@ def make_patch_request(session):
 
 @pytest.fixture(scope='session')
 def make_delete_request(session):
-    async def inner(method: str, params: dict = None) -> HTTPResponse:
+    async def inner(method: str,
+                    params: dict = None,
+                    headers: dict = None) -> HTTPResponse:
         params = params or {}
+        headers = headers or {}
         url = '{protocol}://{host}:{port}/api/v{api_version}/{method}'.format(
             protocol=config.service_protocol,
             host=config.service_host,
@@ -134,7 +147,8 @@ def make_delete_request(session):
             api_version=config.service_api_version,
             method=method
         )
-        async with session.delete(url, params=params) as response:
+        async with session.delete(url,
+                                  params=params, headers=headers) as response:
             return HTTPResponse(
                 body=await response.json(),
                 headers=response.headers,
