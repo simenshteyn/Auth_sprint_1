@@ -2,48 +2,25 @@ from http import HTTPStatus
 
 from dependency_injector.wiring import Provide, inject
 from flask import Blueprint, Response, jsonify, make_response, request
-from flask_jwt_extended import jwt_required
 
 from core.containers import Container
-from core.utils import ServiceException, authenticate
+from core.utils import ServiceException
 from models.permission import Permission
 from services.role import RoleService
 
 role = Blueprint('role', __name__, url_prefix='/role')
 
 
-# @role.route('/', methods=['GET'])
-# @inject
-# def get_roles(role_service: RoleService = Provide[Container.role_service]):
-#     try:
-#         role_list = role_service.get_roles_list()
-#     except ServiceException as err:
-#         return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
-#     result = [{'uuid': role.role_id,
-#                'role_name': role.role_name} for role in role_list]
-#     return jsonify(result)
 @role.route('/', methods=['GET'])
-@jwt_required()
-@authenticate()
 @inject
-def get_roles(user_id: str,
-              role_service: RoleService = Provide[Container.role_service]):
+def get_roles(role_service: RoleService = Provide[Container.role_service]):
     try:
-        is_permitted = role_service.check_authorization(user_id)
-        if is_permitted:
-            role_list = role_service.get_roles_list()
-            result = [{'uuid': role.role_id,
-                       'role_name': role.role_name} for role in role_list]
-            return jsonify(result)
-        else:
-            error_code = 'NOT_PERMITTED'
-            message = 'Have no permission to get roles'
-            return make_response(
-                jsonify(error_code=error_code, message=message),
-                HTTPStatus.BAD_REQUEST
-            )
+        role_list = role_service.get_roles_list()
     except ServiceException as err:
         return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
+    result = [{'uuid': role.role_id,
+               'role_name': role.role_name} for role in role_list]
+    return jsonify(result)
 
 
 @role.route('/', methods=['POST'])
