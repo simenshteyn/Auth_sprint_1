@@ -2,11 +2,14 @@ from typing import Union
 
 from flask import Request, Response
 
+from core.settings import config
 from core.utils import ServiceException
 from db.pg import db
 from models.permission import Permission, PermissionSetRequest
 from models.role import Role, RoleCreationRequest
 from models.role_permissions import RolePermission
+from models.roles_owners import RoleOwner
+from models.user import User
 from services.base import BaseService
 
 
@@ -113,3 +116,25 @@ class RoleService(BaseService):
             self, request: Request) -> Union[PermissionSetRequest, Response]:
         """Valide permission setting request. """
         return self._validate(request, PermissionSetRequest)
+
+    def check_authorization(
+            self,
+            user_id: str,
+            role_name: str = config.service_admin_role) -> bool:
+        """Check if user has access to work with roles (superadmin role). """
+        existing_user: User = User.query.get(user_id)
+        if not existing_user:
+            error_code = 'USER_NOT_FOUND'
+            message = 'Unknown user UUID'
+            raise ServiceException(error_code=error_code, message=message)
+
+        existing_role_ownership = RoleOwner.query.filter(
+            RoleOwner.owner_id == user_id).all()
+
+        role_ids = [ro.role_id for ro in existing_role_ownership]
+        roles = [Role.query.get(role_id) for role_id in role_ids]
+        has_role = False
+        for role in roles:
+            if role.role_name == role_name:
+                has_role = True
+        return has_role
