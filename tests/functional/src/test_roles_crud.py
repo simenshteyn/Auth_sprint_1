@@ -29,6 +29,28 @@ def remove_user(pg_curs, user_id: str, table_name: str = 'users',
     pg_curs.execute(statement, (user_id,))
 
 
+def create_role(pg_curs, role_name: str, table_name: str = 'roles',
+                scheme: str = 'app') -> str:
+    """Create role in database and return its UUID. """
+    statement = textwrap.dedent(f'INSERT INTO {scheme}.{table_name} '
+                                f'(role_name) VALUES (%s);')
+    pg_curs.execute(statement, (role_name,))
+
+    statement = textwrap.dedent(
+        f'SELECT role_id FROM {scheme}.{table_name} WHERE role_name = %s ;'
+    )
+    pg_curs.execute(statement, (role_name,))
+    return pg_curs.fetchone()[0]
+
+
+def assign_role(pg_curs, owner_id: str, role_id: str,
+                table_name: str = 'roles_owners', scheme: str = 'app'):
+    """Assign role in database to user directly. """
+    statement = textwrap.dedent(f'INSERT INTO {scheme}.{table_name} '
+                                f'(owner_id, role_id) VALUES (%s, %s);')
+    pg_curs.execute(statement, (owner_id, role_id))
+
+
 @pytest.mark.asyncio
 async def test_role_endpoint_crud(make_post_request, make_get_request,
                                   make_patch_request, make_delete_request,
@@ -46,10 +68,15 @@ async def test_role_endpoint_crud(make_post_request, make_get_request,
     response, user = create_user(valid_data, pg_curs, redis_conn)
     tokens = AuthTokenResponse(**response.json())
     access_token = tokens.access_token
+    user_uuid = user['user_id']
     assert response.status_code == 200
     assert user['user_login'] == username
     assert user['user_email'] == email
     assert len(access_token) > 5
+
+    # Assign superuser role to superuser
+    su_role_uuid = create_role(pg_curs, role_name='superadmin')
+    assign_role(pg_curs, owner_id=user_uuid, role_id=su_role_uuid)
 
     # Create new role
     response = await make_post_request('role/',
