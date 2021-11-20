@@ -3,6 +3,7 @@ from http import HTTPStatus
 
 import pytest
 
+from tests.functional.src.test_user import create_user, AuthTokenResponse
 from tests.functional.utils.extract import (extract_perm_check,
                                             extract_permission,
                                             extract_permissions, extract_role,
@@ -30,11 +31,29 @@ def remove_user(pg_curs, user_id: str, table_name: str = 'users',
 
 @pytest.mark.asyncio
 async def test_role_endpoint_crud(make_post_request, make_get_request,
-                                  make_patch_request, make_delete_request):
+                                  make_patch_request, make_delete_request,
+                                  pg_curs, redis_conn):
     """Test roles CRUD cycle: creation, read, update and deletion. """
+    # Create superuser to work with roles and get tokens
+    username = password = 'testsuperuser'
+    email = username + '@yandex.com'
+    valid_data = {
+        'username': username,
+        'password': password,
+        'email': email
+    }
+
+    response, user = create_user(valid_data, pg_curs, redis_conn)
+    tokens = AuthTokenResponse(**response.json())
+    access_token = tokens.access_token
+    assert response.status_code == 200
+    assert user['user_login'] == username
+    assert user['user_email'] == email
+    assert len(access_token) > 5
+
+    # Create new role
     response = await make_post_request('role/',
                                        json={'role_name': 'test_role'})
-    # Create new role
     role = await extract_role(response)
     assert response.status == HTTPStatus.OK
     assert role.role_name == 'test_role'
