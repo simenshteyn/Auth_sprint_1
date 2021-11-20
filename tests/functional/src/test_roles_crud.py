@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
+from tests.functional.settings import config
 from tests.functional.src.test_user import create_user, AuthTokenResponse
 from tests.functional.utils.db_utils import create_role, assign_role, \
     get_auth_headers, remove_user, remove_role, get_user_uuid
@@ -35,7 +36,7 @@ async def test_role_endpoint_crud(make_post_request, make_get_request,
     assert len(access_token) > 5
 
     # Assign superuser role to superuser
-    su_role_uuid = create_role(pg_curs, role_name='superadmin')
+    su_role_uuid = create_role(pg_curs, role_name=config.service_admin_role)
     assign_role(pg_curs, owner_id=su_user_uuid, role_id=su_role_uuid)
 
     # Create new role
@@ -101,7 +102,7 @@ async def test_role_permissions_assigment(make_post_request, make_get_request,
     assert len(access_token) > 5
 
     # Assign superuser role to superuser
-    su_role_uuid = create_role(pg_curs, role_name='superadmin')
+    su_role_uuid = create_role(pg_curs, role_name=config.service_admin_role)
     assign_role(pg_curs, owner_id=su_user_uuid, role_id=su_role_uuid)
 
     # Create new role and save it's uuid
@@ -200,7 +201,7 @@ async def test_user_role_assigment(make_post_request, make_get_request,
     assert len(access_token) > 5
 
     # Assign superuser role to superuser
-    su_role_uuid = create_role(pg_curs, role_name='superadmin')
+    su_role_uuid = create_role(pg_curs, role_name=config.service_admin_role)
     assign_role(pg_curs, owner_id=su_user_uuid, role_id=su_role_uuid)
 
     # Create new user and save it's uuid and tokens
