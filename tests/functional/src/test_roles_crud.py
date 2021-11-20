@@ -51,6 +51,19 @@ def assign_role(pg_curs, owner_id: str, role_id: str,
     pg_curs.execute(statement, (owner_id, role_id))
 
 
+def remove_role(pg_curs, role_id: str, table_name: str = 'roles',
+                scheme: str = 'app') -> None:
+    """Remove user with given UUID from database. """
+    statement = textwrap.dedent(
+        f'DELETE FROM {scheme}.{table_name} WHERE role_id = %s ;'
+    )
+    pg_curs.execute(statement, (role_id,))
+
+
+def get_auth_headers(token: str):
+    return {'Authorization': 'Bearer ' + token}
+
+
 @pytest.mark.asyncio
 async def test_role_endpoint_crud(make_post_request, make_get_request,
                                   make_patch_request, make_delete_request,
@@ -68,7 +81,7 @@ async def test_role_endpoint_crud(make_post_request, make_get_request,
     response, user = create_user(valid_data, pg_curs, redis_conn)
     tokens = AuthTokenResponse(**response.json())
     access_token = tokens.access_token
-    user_uuid = user['user_id']
+    su_user_uuid = user['user_id']
     assert response.status_code == 200
     assert user['user_login'] == username
     assert user['user_email'] == email
@@ -76,35 +89,45 @@ async def test_role_endpoint_crud(make_post_request, make_get_request,
 
     # Assign superuser role to superuser
     su_role_uuid = create_role(pg_curs, role_name='superadmin')
-    assign_role(pg_curs, owner_id=user_uuid, role_id=su_role_uuid)
+    assign_role(pg_curs, owner_id=su_user_uuid, role_id=su_role_uuid)
 
     # Create new role
     response = await make_post_request('role/',
-                                       json={'role_name': 'test_role'})
+                                       json={'role_name': 'test_role'},
+                                       headers=get_auth_headers(access_token))
     role = await extract_role(response)
     assert response.status == HTTPStatus.OK
     assert role.role_name == 'test_role'
     role_uuid = role.uuid
 
     # Get list of roles with created one
-    response = await make_get_request('role/')
+    response = await make_get_request('role/',
+                                      headers=get_auth_headers(access_token))
     roles = await extract_roles(response)
     assert response.status == HTTPStatus.OK
     assert len(roles) > 0
 
     # Rename role by UUID
     response = await make_patch_request(f'role/{role_uuid}',
-                                        json={'role_name': 'test_role_2'})
+                                        json={'role_name': 'test_role_2'},
+                                        headers=get_auth_headers(access_token))
     role = await extract_role(response)
     assert response.status == HTTPStatus.OK
     assert role.role_name == 'test_role_2'
 
     # Remove role by UUID
-    response = await make_delete_request(f'role/{role_uuid}')
+    response = await make_delete_request(
+        f'role/{role_uuid}',
+        headers=get_auth_headers(access_token)
+    )
     role = await extract_role(response)
     assert response.status == HTTPStatus.OK
     assert role.role_name == 'test_role_2'
     assert role.uuid == role_uuid
+
+    # Remove superuser and superadmin role
+    remove_user(pg_curs, user_id=su_user_uuid)
+    remove_role(pg_curs, role_id=su_role_uuid)
 
 
 @pytest.mark.asyncio
