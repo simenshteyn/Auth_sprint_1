@@ -5,9 +5,10 @@ from models.permission import Permission
 from models.role_permissions import RolePermission
 from models.roles_owners import RoleOwner
 from models.user import User
+from services.base import BaseService
 
 
-class UserPermsService:
+class UserPermsService(BaseService):
     def __init__(self):
         pass
 
