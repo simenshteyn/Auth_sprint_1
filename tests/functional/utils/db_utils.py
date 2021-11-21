@@ -35,11 +35,17 @@ def create_role(pg_curs, role_name: str, table_name: str = 'roles',
 
 
 def assign_role(pg_curs, owner_id: str, role_id: str,
-                table_name: str = 'roles_owners', scheme: str = 'app'):
+                table_name: str = 'roles_owners', scheme: str = 'app') -> str:
     """Assign role in database to user directly. """
     statement = textwrap.dedent(f'INSERT INTO {scheme}.{table_name} '
                                 f'(owner_id, role_id) VALUES (%s, %s);')
     pg_curs.execute(statement, (owner_id, role_id))
+    statement = textwrap.dedent(
+        f'SELECT role_owner_id FROM {scheme}.{table_name} '
+        f'WHERE owner_id = %s AND role_id = %s ;'
+    )
+    pg_curs.execute(statement, (owner_id, role_id))
+    return pg_curs.fetchone()[0]
 
 
 def remove_role(pg_curs, role_id: str, table_name: str = 'roles',

@@ -3,9 +3,8 @@ from http import HTTPStatus
 import pytest
 
 from tests.functional.settings import config
-from tests.functional.src.test_user import create_user, AuthTokenResponse
-from tests.functional.utils.db_utils import create_role, assign_role, \
-    get_auth_headers, remove_user, remove_role, get_user_uuid
+from tests.functional.utils.db_utils import get_auth_headers, remove_user, \
+    get_user_uuid
 from tests.functional.utils.extract import (extract_perm_check,
                                             extract_permission,
                                             extract_permissions, extract_role,
@@ -15,45 +14,25 @@ from tests.functional.utils.extract import (extract_perm_check,
 @pytest.mark.asyncio
 async def test_role_endpoint_crud(make_post_request, make_get_request,
                                   make_patch_request, make_delete_request,
-                                  pg_curs, redis_conn):
+                                  get_superuser_token):
     """Test roles CRUD cycle: creation, read, update and deletion. """
-    # Create superuser to work with roles and get tokens
-    username = password = 'testsuperuser'
-    email = username + '@yandex.com'
-    valid_data = {
-        'username': username,
-        'password': password,
-        'email': email
-    }
-
-    response, user = create_user(valid_data, pg_curs, redis_conn)
-    tokens = AuthTokenResponse(**response.json())
-    access_token = tokens.access_token
-    su_user_uuid = user['user_id']
-    assert response.status_code == 200
-    assert user['user_login'] == username
-    assert user['user_email'] == email
-    assert len(access_token) > 5
-
-    # Assign superuser role to superuser
-    su_role_uuid = create_role(pg_curs, role_name=config.service_admin_role)
-    assign_role(pg_curs, owner_id=su_user_uuid, role_id=su_role_uuid)
+    access_token = get_superuser_token
 
     # Create new role
     response = await make_post_request('role/',
                                        json={'role_name': 'test_role'},
                                        headers=get_auth_headers(access_token))
     role = await extract_role(response)
+    role_uuid = role.uuid
     assert response.status == HTTPStatus.OK
     assert role.role_name == 'test_role'
-    role_uuid = role.uuid
 
     # Get list of roles with created one
     response = await make_get_request('role/',
                                       headers=get_auth_headers(access_token))
     roles = await extract_roles(response)
     assert response.status == HTTPStatus.OK
-    assert len(roles) > 0
+    assert len(roles) == 2
 
     # Rename role by UUID
     response = await make_patch_request(f'role/{role_uuid}',
@@ -73,37 +52,21 @@ async def test_role_endpoint_crud(make_post_request, make_get_request,
     assert role.role_name == 'test_role_2'
     assert role.uuid == role_uuid
 
-    # Remove superuser and superadmin role
-    remove_user(pg_curs, user_id=su_user_uuid)
-    remove_role(pg_curs, role_id=su_role_uuid)
+    # Get list of roles with superadmin role only
+    response = await make_get_request('role/',
+                                      headers=get_auth_headers(access_token))
+    roles = await extract_roles(response)
+    assert response.status == HTTPStatus.OK
+    assert len(roles) == 1
+    assert roles[0].role_name == config.service_admin_role
 
 
 @pytest.mark.asyncio
 async def test_role_permissions_assigment(make_post_request, make_get_request,
-                                          make_delete_request, pg_curs,
-                                          redis_conn):
+                                          make_delete_request,
+                                          get_superuser_token):
     """Test permissions CRUD assigment: create, assign and remove process. """
-    # Create superuser to work with roles and get tokens
-    username = password = 'testsuperuser2'
-    email = username + '@yandex.com'
-    valid_data = {
-        'username': username,
-        'password': password,
-        'email': email
-    }
-
-    response, user = create_user(valid_data, pg_curs, redis_conn)
-    tokens = AuthTokenResponse(**response.json())
-    access_token = tokens.access_token
-    su_user_uuid = user['user_id']
-    assert response.status_code == 200
-    assert user['user_login'] == username
-    assert user['user_email'] == email
-    assert len(access_token) > 5
-
-    # Assign superuser role to superuser
-    su_role_uuid = create_role(pg_curs, role_name=config.service_admin_role)
-    assign_role(pg_curs, owner_id=su_user_uuid, role_id=su_role_uuid)
+    access_token = get_superuser_token
 
     # Create new role and save it's uuid
     response = await make_post_request('role/',
@@ -172,37 +135,21 @@ async def test_role_permissions_assigment(make_post_request, make_get_request,
     assert response.status == HTTPStatus.OK
     assert perm.uuid == perm_uuid
 
-    # Remove superuser and superadmin role
-    remove_user(pg_curs, user_id=su_user_uuid)
-    remove_role(pg_curs, role_id=su_role_uuid)
+    # Get list of roles with superadmin role only
+    response = await make_get_request('role/',
+                                      headers=get_auth_headers(access_token))
+    roles = await extract_roles(response)
+    assert response.status == HTTPStatus.OK
+    assert len(roles) == 1
+    assert roles[0].role_name == config.service_admin_role
 
 
 @pytest.mark.asyncio
 async def test_user_role_assigment(make_post_request, make_get_request,
-                                   make_delete_request, pg_curs, redis_client,
-                                   redis_conn):
+                                   make_delete_request, pg_curs,
+                                   get_superuser_token, redis_client):
     """Test full cycle of Role assigment to User: add, get, check, remove. """
-
-    # Create superuser to work with roles and get tokens
-    username = password = 'testsuperuser3'
-    email = username + '@yandex.com'
-    valid_data = {
-        'username': username,
-        'password': password,
-        'email': email
-    }
-    response, user = create_user(valid_data, pg_curs, redis_conn)
-    tokens = AuthTokenResponse(**response.json())
-    access_token = tokens.access_token
-    su_user_uuid = user['user_id']
-    assert response.status_code == 200
-    assert user['user_login'] == username
-    assert user['user_email'] == email
-    assert len(access_token) > 5
-
-    # Assign superuser role to superuser
-    su_role_uuid = create_role(pg_curs, role_name=config.service_admin_role)
-    assign_role(pg_curs, owner_id=su_user_uuid, role_id=su_role_uuid)
+    access_token = get_superuser_token
 
     # Create new user and save it's uuid and tokens
     response = await make_post_request('user/signup',
@@ -347,7 +294,3 @@ async def test_user_role_assigment(make_post_request, make_get_request,
 
     # Remove created user
     remove_user(pg_curs, user_uuid)
-
-    # Remove superuser and superadmin role
-    remove_user(pg_curs, user_id=su_user_uuid)
-    remove_role(pg_curs, role_id=su_role_uuid)
