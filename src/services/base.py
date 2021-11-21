@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Union
+from typing import Union, Type
 
 from flask import Request, Response, jsonify, make_response
 from pydantic import BaseModel, ValidationError
@@ -13,7 +13,7 @@ from models.user import User
 
 class BaseService:
     def _validate(
-            self, request: Request, model: BaseModel
+            self, request: Request, model: Type[BaseModel]
             ) -> Union[BaseModel, Response]:
         request_json = request.json
         try:
