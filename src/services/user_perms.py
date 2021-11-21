@@ -5,9 +5,10 @@ from models.permission import Permission
 from models.role_permissions import RolePermission
 from models.roles_owners import RoleOwner
 from models.user import User
+from services.base import BaseService
 
 
-class UserPermsService:
+class UserPermsService(BaseService):
     def __init__(self):
         pass
 
@@ -15,8 +16,8 @@ class UserPermsService:
         """Get User list of Permissions. """
         existing_user: User = User.query.get(user_id)
         if not existing_user:
-            error_code = 'USER_NOT_FOUND'
-            message = 'Unknown user UUID'
+            error_code = self.USER_NOT_FOUND.code
+            message = self.USER_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         existing_role_ownership = RoleOwner.query.filter(
@@ -45,8 +46,8 @@ class UserPermsService:
         existing_permission: Permission = Permission.query.filter(
             Permission.permission_id == perm_id).first()
         if not existing_permission:
-            error_code = 'PERMISSION_NOT_FOUND'
-            message = 'Permission with that UUID not found'
+            error_code = self.PERMISSION_NOT_FOUND.code
+            message = self.PERMISSION_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         user_perms: list[Permission] = self.get_user_perms_list(user_id)

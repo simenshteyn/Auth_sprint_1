@@ -147,8 +147,11 @@ def auth_history(user_id: str,
 
 
 @user.route('/<uuid:user_uuid>/roles', methods=['POST'])
+@jwt_required()
+@authenticate()
 @inject
 def assign_user_role(
+        user_id: str,
         user_uuid: str,
         user_role_service: UserRoleService = Provide[
             Container.user_role_service]):
@@ -156,6 +159,7 @@ def assign_user_role(
     if isinstance(set_request, Response):
         return set_request
     try:
+        user_role_service.check_superuser_authorization(user_id)
         new_role: Role = user_role_service.assign_user_role(
             user_id=user_uuid,
             role_id=set_request.role_uuid)
@@ -169,12 +173,16 @@ def assign_user_role(
 
 
 @user.route('/<uuid:user_uuid>/roles', methods=['GET'])
+@jwt_required()
+@authenticate()
 @inject
 def get_user_roles_list(
+        user_id: str,
         user_uuid: str,
         user_role_service: UserRoleService = Provide[
             Container.user_role_service]):
     try:
+        user_role_service.check_superuser_authorization(user_id)
         roles_list = user_role_service.get_user_roles_list(user_uuid)
     except ServiceException as err:
         return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)
@@ -184,13 +192,17 @@ def get_user_roles_list(
 
 
 @user.route('/<uuid:user_uuid>/roles/<uuid:role_uuid>', methods=['DELETE'])
+@jwt_required()
+@authenticate()
 @inject
 def remove_role_from_user(
+        user_id: str,
         user_uuid: str,
         role_uuid: str,
         user_role_service: UserRoleService = Provide[
             Container.user_role_service]):
     try:
+        user_role_service.check_superuser_authorization(user_id)
         role = user_role_service.remove_role_from_user(user_id=user_uuid,
                                                        role_id=role_uuid)
     except ServiceException as err:
@@ -201,12 +213,16 @@ def remove_role_from_user(
 
 
 @user.route('/<uuid:user_uuid>/permissions', methods=['GET'])
+@jwt_required()
+@authenticate()
 @inject
 def get_user_perms_list(
+        user_id: str,
         user_uuid: str,
         user_perm_service: UserPermsService = Provide[
             Container.user_perm_service]):
     try:
+        user_perm_service.check_superuser_authorization(user_id)
         perms_list: list[Permission] = user_perm_service.get_user_perms_list(
             user_uuid)
     except ServiceException as err:

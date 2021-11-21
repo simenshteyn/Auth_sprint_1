@@ -17,8 +17,8 @@ class UserRoleService(BaseService):
     def get_user_roles_list(self, user_id: str) -> list[Role]:
         existing_user: User = User.query.get(user_id)
         if not existing_user:
-            error_code = 'USER_NOT_FOUND'
-            message = 'Unknown user UUID'
+            error_code = self.USER_NOT_FOUND.code
+            message = self.USER_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         existing_role_ownership = RoleOwner.query.filter(
@@ -31,22 +31,22 @@ class UserRoleService(BaseService):
     def assign_user_role(self, user_id: str, role_id: str) -> Role:
         existing_user: User = User.query.get(user_id)
         if not existing_user:
-            error_code = 'USER_NOT_FOUND'
-            message = 'Unknown user UUID'
+            error_code = self.USER_NOT_FOUND.code
+            message = self.USER_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         existing_role: Role = Role.query.get(role_id)
         if not existing_role:
-            error_code = 'ROLE_NOT_FOUND'
-            message = 'Unknown role UUID'
+            error_code = self.ROLE_NOT_FOUND.code
+            message = self.ROLE_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         existing_role_ownership: RoleOwner = RoleOwner.query.filter(
             RoleOwner.role_id == role_id).filter(
             RoleOwner.owner_id == user_id).first()
         if existing_role_ownership:
-            error_code = 'ROLE_EXISTS'
-            message = 'User already owns this role'
+            error_code = self.ROLE_EXISTS.code
+            message = self.ROLE_EXISTS.message
             raise ServiceException(error_code=error_code, message=message)
 
         new_role_ownership = RoleOwner(owner_id=user_id, role_id=role_id)
@@ -59,22 +59,22 @@ class UserRoleService(BaseService):
     def remove_role_from_user(self, user_id: str, role_id: str):
         existing_user: User = User.query.get(user_id)
         if not existing_user:
-            error_code = 'USER_NOT_FOUND'
-            message = 'Unknown user UUID'
+            error_code = self.USER_NOT_FOUND.code
+            message = self.USER_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         existing_role: Role = Role.query.get(role_id)
         if not existing_role:
-            error_code = 'ROLE_NOT_FOUND'
-            message = 'Unknown role UUID'
+            error_code = self.ROLE_NOT_FOUND.code
+            message = self.ROLE_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         existing_role_ownership: RoleOwner = RoleOwner.query.filter(
             RoleOwner.role_id == role_id).filter(
             RoleOwner.owner_id == user_id).first()
         if not existing_role_ownership:
-            error_code = 'NO_ROLE_OWNERSHIP'
-            message = 'User has no ownership over this role'
+            error_code = self.NO_ROLE_OWNERSHIP.code
+            message = self.NO_ROLE_OWNERSHIP.message
             raise ServiceException(error_code=error_code, message=message)
         role = Role.query.get(role_id)
         db.session.delete(existing_role_ownership)

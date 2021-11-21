@@ -24,8 +24,8 @@ class RoleService(BaseService):
             Role.role_name == role_name).first()
 
         if existing_role:
-            error_code = 'ROLE_EXISTS'
-            message = 'Role with than name already exists'
+            error_code = self.ROLE_EXISTS.code
+            message = self.ROLE_EXISTS.message
             raise ServiceException(error_code=error_code, message=message)
 
         new_role = Role(role_name=role_name)
@@ -38,8 +38,8 @@ class RoleService(BaseService):
         existing_role: Role = Role.query.get(role_id)
 
         if not existing_role:
-            error_code = 'ROLE_NOT_FOUND'
-            message = 'Role with that UUID not found'
+            error_code = self.ROLE_NOT_FOUND.code
+            message = self.ROLE_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         existing_role.role_name = role_name
@@ -51,8 +51,8 @@ class RoleService(BaseService):
         existing_role: Role = Role.query.filter(
             Role.role_id == role_id).first()
         if not existing_role:
-            error_code = 'ROLE_NOT_FOUND'
-            message = 'Role with that UUID not found'
+            error_code = self.ROLE_NOT_FOUND.code
+            message = self.ROLE_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         db.session.delete(existing_role)
@@ -64,8 +64,8 @@ class RoleService(BaseService):
         existing_role: Role = Role.query.filter(
             Role.role_id == role_id).first()
         if not existing_role:
-            error_code = 'ROLE_NOT_FOUND'
-            message = 'Role with that UUID not found'
+            error_code = self.ROLE_NOT_FOUND.code
+            message = self.ROLE_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
         role_perms = RolePermission.query.filter(
             RolePermission.role_id == role_id).all()
@@ -80,8 +80,8 @@ class RoleService(BaseService):
             RolePermission.role_id == role_id).filter(
             RolePermission.permission_id == perm_id).first()
         if existing_role_perm:
-            error_code = 'ROLE_PERMISSION_EXISTS'
-            message = 'Permission for Role with that UUID already exists'
+            error_code = self.ROLE_PERMISSION_EXISTS.code
+            message = self.ROLE_PERMISSION_EXISTS.message
             raise ServiceException(error_code=error_code, message=message)
         rp = RolePermission(role_id=role_id, permission_id=perm_id)
         db.session.add(rp)
@@ -96,8 +96,8 @@ class RoleService(BaseService):
             RolePermission.role_id == role_id,
             RolePermission.permission_id == perm_id).first()
         if not existing_role_perm:
-            error_code = 'ROLE_PERMISSION_NOT_FOUND'
-            message = 'Permission for Role with that UUID not found'
+            error_code = self.ROLE_PERMISSION_NOT_FOUND.code
+            message = self.ROLE_PERMISSION_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
         perm: Permission = Permission.query.get(perm_id)
         db.session.delete(existing_role_perm)
