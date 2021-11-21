@@ -2,9 +2,10 @@ from http import HTTPStatus
 
 from dependency_injector.wiring import Provide, inject
 from flask import Blueprint, Response, jsonify, make_response, request
+from flask_jwt_extended import jwt_required
 
 from core.containers import Container
-from core.utils import ServiceException
+from core.utils import ServiceException, authenticate
 from models.permission import Permission
 from services.role import RoleService
 
@@ -12,9 +13,14 @@ role = Blueprint('role', __name__, url_prefix='/role')
 
 
 @role.route('/', methods=['GET'])
+@jwt_required()
+@authenticate()
 @inject
-def get_roles(role_service: RoleService = Provide[Container.role_service]):
+def get_roles(
+        user_id: str,
+        role_service: RoleService = Provide[Container.role_service]):
     try:
+        role_service.check_superuser_authorization(user_id)
         role_list = role_service.get_roles_list()
     except ServiceException as err:
         return make_response(jsonify(err), HTTPStatus.BAD_REQUEST)

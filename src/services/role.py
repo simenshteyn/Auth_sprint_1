@@ -120,7 +120,7 @@ class RoleService(BaseService):
     def check_superuser_authorization(
             self,
             user_id: str,
-            role_name: str = config.service_admin_role) -> bool:
+            role_name: str = config.service_admin_role) -> None:
         """Check if user has access to work with roles (superadmin role). """
         existing_user: User = User.query.get(user_id)
         if not existing_user:
@@ -129,14 +129,16 @@ class RoleService(BaseService):
             raise ServiceException(error_code=error_code, message=message)
 
         existing_superuser_role: Role = Role.query.filter(
-            Role.role_name == role_name)
+            Role.role_name == role_name).first()
         if not existing_superuser_role:
             error_code = 'ROLE_NOT_FOUND'
             message = 'Role not found'
             raise ServiceException(error_code=error_code, message=message)
 
-        existing_role_ownership = RoleOwner.query.filter(
-            RoleOwner.owner_id == user_id).filter(
+        existing_role_ownership: RoleOwner = RoleOwner.query.filter(
+            RoleOwner.owner_id == user_id,
             RoleOwner.role_id == existing_superuser_role.role_id).first()
-
-        return True if existing_role_ownership else False
+        if not existing_role_ownership:
+            error_code = 'NOT_PERMITTED'
+            message = 'This operation requires superuser'
+            raise ServiceException(error_code=error_code, message=message)
