@@ -20,8 +20,8 @@ class PermissionService(BaseService):
             Permission.permission_name == permission_name).first()
 
         if existing_permission:
-            error_code = 'PERMISSION_EXISTS'
-            message = 'Permission with than name already exists'
+            error_code = self.PERMISSION_EXISTS.code
+            message = self.PERMISSION_EXISTS.message
             raise ServiceException(error_code=error_code, message=message)
 
         new_permission = Permission(permission_name=permission_name)
@@ -35,8 +35,8 @@ class PermissionService(BaseService):
             Permission.permission_id == permission_id).first()
 
         if not existing_permission:
-            error_code = 'PERMISSION_NOT_FOUND'
-            message = 'Permission with that UUID not found'
+            error_code = self.PERMISSION_NOT_FOUND.code
+            message = self.PERMISSION_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         existing_permission.permission_name = permission_name
@@ -48,8 +48,8 @@ class PermissionService(BaseService):
             Permission.permission_id == permission_id).first()
 
         if not existing_permission:
-            error_code = 'PERMISSION_NOT_FOUND'
-            message = 'Permission with that UUID not found'
+            error_code = self.PERMISSION_NOT_FOUND.code
+            message = self.PERMISSION_NOT_FOUND.message
             raise ServiceException(error_code=error_code, message=message)
 
         db.session.delete(existing_permission)

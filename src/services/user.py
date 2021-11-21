@@ -1,10 +1,10 @@
-import os
 from typing import Union
 
 from flask import Request, Response
 from flask_jwt_extended import create_access_token, create_refresh_token
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from core.settings import config
 from core.utils import ServiceException
 from db.pg import db
 from db.redis_client import redis
@@ -44,11 +44,11 @@ class UserService(BaseService):
 
         if existing_user:
             if existing_user.user_login == username:
-                error_code = 'LOGIN_EXISTS'
-                message = 'this username is taken'
+                error_code = self.LOGIN_EXISTS.code
+                message = self.LOGIN_EXISTS.message
             else:
-                error_code = 'EMAIL_EXISTS'
-                message = 'this email address is already used'
+                error_code = self.EMAIL_EXISTS.code
+                message = self.EMAIL_EXISTS.message
             raise ServiceException(error_code=error_code, message=message)
 
         password_hash = generate_password_hash(password)
@@ -86,12 +86,12 @@ class UserService(BaseService):
         ).first()
 
         if not user:
-            raise ServiceException(error_code='USER_NOT_FOUND',
-                                   message='Unknown username')
+            raise ServiceException(error_code=self.USER_NOT_FOUND.code,
+                                   message=self.USER_NOT_FOUND.message)
 
         if not check_password_hash(user.user_password, password):
-            raise ServiceException(error_code='WRONG_PASSWORD',
-                                   message='The password is incorrect')
+            raise ServiceException(error_code=self.WRONG_PASSWORD.code,
+                                   message=self.WRONG_PASSWORD.message)
 
         access_token, refresh_token = generate_tokens(user)
         self.commit_authentication(user=user,
@@ -106,8 +106,8 @@ class UserService(BaseService):
         user: User = User.query.get(user_id)
 
         if not user:
-            raise ServiceException(error_code='USER_NOT_FOUND',
-                                   message='Unknown username')
+            raise ServiceException(error_code=self.USER_NOT_FOUND.code,
+                                   message=self.USER_NOT_FOUND.message)
 
         # Find refresh cookie to make sure its
         # the *last* emitted one.
@@ -116,8 +116,8 @@ class UserService(BaseService):
         current_refresh_token = Token.query.filter(
             Token.token_value == refresh_token).first()
         if not current_refresh_token:
-            raise ServiceException(error_code='INVALID_REFRESH_TOKEN',
-                                   message='This refresh token is invalid')
+            raise ServiceException(error_code=self.INVALID_REFRESH_TOKEN.code,
+                                   message=self.INVALID_REFRESH_TOKEN.message)
 
         access_token, refresh_token = generate_tokens(user)
         db.session.delete(current_refresh_token)
@@ -136,14 +136,14 @@ class UserService(BaseService):
         authenticate(access_token)
 
         if not user:
-            raise ServiceException(error_code='USER_NOT_FOUND',
-                                   message='Unknown username')
+            raise ServiceException(error_code=self.USER_NOT_FOUND.code,
+                                   message=self.USER_NOT_FOUND.message)
 
         current_refresh_token = Token.query.filter(
             Token.token_value == refresh_token).first()
         if not current_refresh_token:
-            raise ServiceException(error_code='INVALID_REFRESH_TOKEN',
-                                   message='This refresh token is invalid')
+            raise ServiceException(error_code=self.INVALID_REFRESH_TOKEN.code,
+                                   message=self.INVALID_REFRESH_TOKEN.message)
         # Delete the access token
         db.session.delete(current_refresh_token)
         db.session.commit()
@@ -158,8 +158,8 @@ class UserService(BaseService):
         user: User = User.query.get(user_id)
 
         if not user:
-            raise ServiceException(error_code='USER_NOT_FOUND',
-                                   message='Unknown user')
+            raise ServiceException(error_code=self.USER_NOT_FOUND.code,
+                                   message=self.USER_NOT_FOUND.message)
 
         if not new_username == user.user_login:
             # make sure there is no other user with the target username
@@ -168,8 +168,8 @@ class UserService(BaseService):
             ).first()
 
             if existing_user:
-                raise ServiceException(error_code='LOGIN_EXISTS',
-                                       message='this username is taken')
+                raise ServiceException(error_code=self.LOGIN_EXISTS.code,
+                                       message=self.LOGIN_EXISTS.message)
 
             user.user_login = new_username
 
@@ -211,7 +211,7 @@ class UserService(BaseService):
         db.session.commit()
         redis.set(name=access_token,
                   value='',
-                  ex=os.getenv('ACCESS_TOKEN_EXPIRATION'))
+                  ex=config.access_token_expiration)
 
     def validate_signup(
             self, request: Request) -> Union[SignupRequest, Response]:
