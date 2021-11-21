@@ -117,7 +117,7 @@ class RoleService(BaseService):
         """Valide permission setting request. """
         return self._validate(request, PermissionSetRequest)
 
-    def check_authorization(
+    def check_superuser_authorization(
             self,
             user_id: str,
             role_name: str = config.service_admin_role) -> bool:
@@ -128,13 +128,15 @@ class RoleService(BaseService):
             message = 'Unknown user UUID'
             raise ServiceException(error_code=error_code, message=message)
 
-        existing_role_ownership = RoleOwner.query.filter(
-            RoleOwner.owner_id == user_id).all()
+        existing_superuser_role: Role = Role.query.filter(
+            Role.role_name == role_name)
+        if not existing_superuser_role:
+            error_code = 'ROLE_NOT_FOUND'
+            message = 'Role not found'
+            raise ServiceException(error_code=error_code, message=message)
 
-        role_ids = [ro.role_id for ro in existing_role_ownership]
-        roles = [Role.query.get(role_id) for role_id in role_ids]
-        has_role = False
-        for role in roles:
-            if role.role_name == role_name:
-                has_role = True
-        return has_role
+        existing_role_ownership = RoleOwner.query.filter(
+            RoleOwner.owner_id == user_id).filter(
+            RoleOwner.role_id == existing_superuser_role.role_id).first()
+
+        return True if existing_role_ownership else False
