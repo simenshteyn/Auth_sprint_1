@@ -67,3 +67,17 @@ services:
       - auth_app
     profiles:
       - testing
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger_ui_container
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./design:/usr/share/nginx/html/doc
+    environment:
+      API_URL: doc/authservice_openapi.yaml
+    depends_on:
+      - auth_app
+    profiles:
+      - testing

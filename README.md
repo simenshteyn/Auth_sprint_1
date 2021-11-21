@@ -4,6 +4,8 @@
 
 OpenAPI design: `/design/authservice_openapi.yaml`
 
+SwaggerUI (in testings profile): [http://localhost:8080](http://localhost:8080)
+
 **Setup**
 1. Create .env file with sample (change the default passwords and secret keys!):
 
